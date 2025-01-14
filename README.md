@@ -129,12 +129,12 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 
 This is a template for JS-based drag and drop quizzes in LiaScript documents.
 
-* See the Github version of this document [here...](https://github.com/digiKulTh/Lehr-Lern-Materialien/blob/main/OER/dragndropquiz_template.md)
-* See the LiaScript version of this document [here...](https://liascript.github.io/course/?https%3A%2F%2Fraw.githubusercontent.com%2FdigiKulTh%2FLehr-Lern-Materialien%2Fmain%2FOER%2Fdragndropquiz_template.md)
+* See the Github version of this document [here...](https://github.com/MichaelMarkert/LiaScript_DragAndDrop_Template/)
+* See the LiaScript version of this document [here...](https://liascript.github.io/course/?https://raw.githubusercontent.com/MichaelMarkert/LiaScript_DragAndDrop_Template/refs/heads/main/README.md)
 
 To use these macros within your document, simply import it into LiaScript via:
 
-`import: https://liascript.github.io/course/?https%3A%2F%2Fraw.githubusercontent.com%2FdigiKulTh%2FLehr-Lern-Materialien%2Fmain%2FOER%2Fdragndropquiz_template.md`
+`import: https://raw.githubusercontent.com/MichaelMarkert/LiaScript_DragAndDrop_Template/refs/heads/main/README.md`
 
 ## Drag and drop order quiz
 
