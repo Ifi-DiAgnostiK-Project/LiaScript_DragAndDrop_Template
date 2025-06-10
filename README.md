@@ -123,6 +123,90 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
   }, 100);
 </script>
 @end
+
+@dragdropmultipleimages
+<div style="width: 100%; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
+  <div style="display: flex; gap: 20px;">
+    <div style="flex: 1;">
+      <div style="font-weight: bold; margin-bottom: 10px;">Auswahl:</div>
+      <div class="pool-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed; border-radius: 4px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;" id="pool-@0">
+      </div>
+    </div>
+    <div style="flex: 1;">
+      <div style="font-weight: bold; margin-bottom: 10px;">Antwort:</div>
+      <div class="target-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed border-radius: 4px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;" id="target-@0">
+      </div>
+    </div>
+  </div>
+  
+  <div class="feedback" style="margin-top: 20px; font-size: 2em; font-weight: bold; text-align: center;">🤔</div>
+</div>
+
+<script>
+  void setTimeout(() => {
+    (function(){
+        const quizId = '@0';
+        const quizContainer = document.querySelector(`#quiz-${quizId}`);
+
+        const poolContainer = quizContainer.querySelector('.pool-container');
+        const targetContainer = quizContainer.querySelector('.target-container');
+        const feedback = quizContainer.querySelector('.feedback');
+
+        const correctAnswers = new Set('@1'.split('|'));
+        const wrongAnswers = '@2'.split('|');
+        const allAnswers = [...correctAnswers, ...wrongAnswers];
+
+        //shuffle array
+        for (var i = allAnswers.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var temp = allAnswers[i];
+            allAnswers[i] = allAnswers[j];
+            allAnswers[j] = temp;
+        }
+
+        poolContainer.innerHTML = allAnswers.map(item => 
+          `<img src="${item}" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
+        ).join('');
+
+        new Sortable(poolContainer, {
+          group: {
+            name: quizId,
+            put: true
+          },
+          animation: 150,
+          onEnd: checkAnswer
+        });
+        
+        new Sortable(targetContainer, {
+          group: {
+            name: quizId,
+            pull: true,
+            put: true
+          },
+          animation: 150,
+          onAdd: checkAnswer,
+          onRemove: checkAnswer
+        });
+
+        function checkAnswer() {
+          const currentAnswers = new Set(
+            Array.from(targetContainer.querySelectorAll('.choice'))
+              .map(choice => choice.src)
+          );
+
+          const isCorrect = currentAnswers.size === correctAnswers.size &&
+                           [...currentAnswers].every(answer => correctAnswers.has(answer));
+
+          if (isCorrect) {
+            feedback.textContent = "✅";
+          } else {
+            feedback.textContent = "❌";
+          }
+        }
+    })();
+  }, 100);
+</script>
+@end
 -->
 
 # Drag and Drop Quizzes
