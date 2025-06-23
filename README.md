@@ -93,6 +93,7 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         poolContainer.innerHTML = allAnswers.map(item => 
           `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
         ).join('');
+        targetContainer.innerHTML = "";
 
         new Sortable(poolContainer, {
           group: {
@@ -177,6 +178,7 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         poolContainer.innerHTML = allAnswers.map(item => 
           `<img src="${item}" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
         ).join('');
+        targetContainer.innerHTML = "";
 
         new Sortable(poolContainer, {
           group: {
