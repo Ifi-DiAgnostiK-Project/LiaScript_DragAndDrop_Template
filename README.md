@@ -78,8 +78,8 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         const targetContainer = quizContainer.querySelector('.target-container');
         const feedback = quizContainer.querySelector('.feedback');
 
-        const correctAnswers = new Set('@1'.split('|').map((url) => url.replace(" ", "")));
-        const wrongAnswers = '@2'.split('|').map((url) => url.replace(" ", ""));
+        const correctAnswers = new Set('@1'.split('|'));
+        const wrongAnswers = '@2'.split('|');
         const allAnswers = [...correctAnswers, ...wrongAnswers];
 
         //shuffle array
@@ -163,7 +163,7 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         const targetContainer = quizContainer.querySelector('.target-container');
         const feedback = quizContainer.querySelector('.feedback');
 
-        const correctAnswers = new Set('@1'.split('|').map((url) => url.replace(" ", "")));
+        const correctAnswers = new Set('@1'.split('|').map((url) => encodeURI(url.replace(" ", ""))));
         const wrongAnswers = '@2'.split('|').map((url) => url.replace(" ", ""));
         const allAnswers = [...correctAnswers, ...wrongAnswers];
 
@@ -206,6 +206,9 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
               .map(choice => choice.src)
           );
 
+          console.log(currentAnswers);
+          console.log(correctAnswers);
+
           const isCorrect = currentAnswers.size === correctAnswers.size &&
                            [...currentAnswers].every(answer => correctAnswers.has(answer));
 
@@ -219,9 +222,6 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
   }, 100);
 </script>
 @end
-
-
-@import: https://github.com/vgoehler/DiAgnostiK_Bilder_Test/blob/main/makros.md?raw=true
 -->
 
 # Drag and Drop Quizzes
