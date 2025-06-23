@@ -204,9 +204,6 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
               .map(choice => choice.src)
           );
 
-          console.log(currentAnswers);
-          console.log(correctAnswers);
-
           const isCorrect = currentAnswers.size === correctAnswers.size &&
                            [...currentAnswers].every(answer => correctAnswers.has(answer));
 
@@ -235,9 +232,6 @@ This is a fork of Michael Markerts drag and drop quiz template which also allows
 To use these macros within your document, simply import it into LiaScript via:
 
 `import: https://raw.githubusercontent.com/wenik35/LiaScript_DragAndDrop_Template/refs/heads/main/README.md`
-
-
-@dragdropmultipleimages(@uid, @Leitern.Nur_eine_Person.src, @Warnzeichen.Laserstrahl.src|@Warnzeichen.Automatischer_Anlauf.src|@Brandschutzzeichen.Brandbekaempfung.src|@Rettungszeichen.Erste_Hilfe.src)
 
 ## Drag and drop order quiz
 
