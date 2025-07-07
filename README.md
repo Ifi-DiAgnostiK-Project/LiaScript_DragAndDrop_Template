@@ -145,7 +145,7 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
     </div>
     <div style="flex: 1;">
       <div style="font-weight: bold; margin-bottom: 10px;">Antwort:</div>
-      <div class="target-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed border-radius: 4px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;" id="target-@0">
+      <div class="target-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed; border-radius: 4px; display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px;" id="target-@0">
       </div>
     </div>
   </div>
@@ -187,19 +187,18 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 
         const poolSortable = new Sortable(poolContainer, {
           group: {
-            name: quizId,
-            put: true
+            name: quizId
           },
-          animation: 150
+          animation: 150,
+          sort: false
         });
         
         const targetSortable = new Sortable(targetContainer, {
           group: {
-            name: quizId,
-            pull: true,
-            put: true
+            name: quizId
           },
-          animation: 150
+          animation: 150,
+          sort: false
         });
 
         
@@ -218,7 +217,12 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 
             checkingButton.setAttribute("disabled", "");
 
-            poolSortable.sort = false;
+            const groupSetting = {name: quizId, pull: false, put: false};
+            poolSortable.option("group", groupSetting);
+            targetSortable.option("group", groupSetting);
+
+            poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+            targetContainer.style.borderColor = "rgb(var(--lia-grey))";
           } else {
             feedback.textContent = "❌";
 
