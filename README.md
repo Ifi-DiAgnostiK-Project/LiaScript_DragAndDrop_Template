@@ -150,7 +150,12 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
     </div>
   </div>
   
-  <div class="feedback" style="margin-top: 20px; font-size: 2em; font-weight: bold; text-align: center;">🤔</div>
+  <div style="margin: 10px">
+    <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
+    <br>
+    <span style="font-size: 2em" class="feedback"></span>
+  </div>
+
 </div>
 
 <script>
@@ -180,44 +185,48 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         ).join('');
         targetContainer.innerHTML = "";
 
-        new Sortable(poolContainer, {
+        const poolSortable = new Sortable(poolContainer, {
           group: {
             name: quizId,
             put: true
           },
-          animation: 150,
-          onEnd: checkAnswer
+          animation: 150
         });
         
-        new Sortable(targetContainer, {
+        const targetSortable = new Sortable(targetContainer, {
           group: {
             name: quizId,
             pull: true,
             put: true
           },
-          animation: 150,
-          onAdd: checkAnswer,
-          onRemove: checkAnswer
+          animation: 150
         });
 
-        function checkAnswer() {
+        
+        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
+        checkingButton.addEventListener("click", function (e) {
           const currentAnswers = new Set(
             Array.from(targetContainer.querySelectorAll('.choice'))
               .map(choice => choice.src)
           );
-
-          console.log(currentAnswers);
-          console.log(correctAnswers);
 
           const isCorrect = currentAnswers.size === correctAnswers.size &&
                            [...currentAnswers].every(answer => correctAnswers.has(answer));
 
           if (isCorrect) {
             feedback.textContent = "✅";
+
+            checkingButton.setAttribute("disabled", "");
+
+            poolSortable.sort = false;
           } else {
             feedback.textContent = "❌";
+
+            const buttonText = checkingButton.textContent.split(" ");
+            const count = parseInt(buttonText[1] ?? "0") + 1;
+            checkingButton.textContent = "Prüfen " + count.toString();
           }
-        }
+        })
     })();
   }, 100);
 </script>
