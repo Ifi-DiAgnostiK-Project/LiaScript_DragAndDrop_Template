@@ -1,49 +1,67 @@
 <!--
 author:   Michael Markert, Niklas Werner
 email:    michael.markert@uni-jena.de, niklas.werner@student.tu-freiberg.de
-version:  0.1
+version:  0.2
 language: de
 narrator: US English Female
 
 script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 
 @dragdroporder
-<div style="width: 100%; max-width: 600px; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;">
-  <div class="choices-container" style="display: flex; flex-direction: column; gap: 10px;" id="quiz-@0">
+<div style="width: 100%; max-width: 600px; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
+  <div class="choices-container" style="display: flex; flex-direction: column; gap: 10px;">
   </div>
-  <div class="feedback" style="margin-top: 20px; font-size:2em; font-weight: bold; text-align: center;">🤔</div>
+
+  <div style="margin: 10px; display: flex; flex-direction: row; align-content: center;">
+    <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
+    <span style="font-size: 1.5em" class="feedback"></span>
+  </div>
 </div>
 
 <script>
   void setTimeout(() => {
     (function(){
         const quizId = '@0';
-        const container = document.querySelector(`#quiz-${quizId}`);
+        const quizContainer = document.querySelector(`#quiz-${quizId}`);
+        const choicesContainer = quizContainer.querySelector('.choices-container');
+        const feedback = quizContainer.querySelector('.feedback');
 
-        const feedback = container.nextElementSibling;
         const correctAnswers = '@2'.split('|');
-
         const initialOrder = '@1'.split('|');
-        container.innerHTML = initialOrder.map(item => 
+
+        choicesContainer.innerHTML = initialOrder.map(item => 
           `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
         ).join('');
         
-        new Sortable(container, {
+        const sortable = new Sortable(choicesContainer, {
           animation: 150,
-          onEnd: function() {
-            const choices = Array.from(container.querySelectorAll('.choice'));
-            const currentOrder = choices.map(choice => choice.textContent.trim());
-            
-            const isCorrect = currentOrder.length === correctAnswers.length && 
-                             currentOrder.every((answer, index) => answer === correctAnswers[index]);
-            
-            if (isCorrect) {
-              feedback.textContent = "✅";
-            } else {
-              feedback.textContent = "❌";
-            }
-          }
         });
+        
+        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
+        checkingButton.addEventListener("click", function (e) {
+          const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
+          const currentOrder = choices.map(choice => choice.textContent.trim());
+          
+          const isCorrect = currentOrder.length === correctAnswers.length && 
+                            currentOrder.every((answer, index) => answer === correctAnswers[index]);
+
+          if (isCorrect) {
+            feedback.textContent = "✅";
+
+            checkingButton.setAttribute("disabled", "");
+
+            choicesContainer.style.borderColor = "rgb(var(--lia-grey))";
+            quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+            choicesContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+          } else {
+            feedback.textContent = "❌";
+
+            const buttonText = checkingButton.textContent.split(" ");
+            const count = parseInt(buttonText[1] ?? "0") + 1;
+            checkingButton.textContent = "Prüfen " + count.toString();
+          }
+        })
         
     })();
   }, 100);
@@ -60,12 +78,16 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
     </div>
     <div style="flex: 1;">
       <div style="font-weight: bold; margin-bottom: 10px;">Your Selection:</div>
-      <div class="target-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed border-radius: 4px; display: flex; flex-direction: column; gap: 10px;" id="target-@0">
+      <div class="target-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed; border-radius: 4px; display: flex; flex-direction: column; gap: 10px;" id="target-@0">
       </div>
     </div>
   </div>
   
-  <div class="feedback" style="margin-top: 20px; font-size: 2em; font-weight: bold; text-align: center;">🤔</div>
+  
+  <div style="margin: 10px; display: flex; flex-direction: row; align-content: center;">
+    <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
+    <span style="font-size: 1.5em" class="feedback"></span>
+  </div>
 </div>
 
 <script>
@@ -95,27 +117,24 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         ).join('');
         targetContainer.innerHTML = "";
 
-        new Sortable(poolContainer, {
+        const poolSortable = new Sortable(poolContainer, {
           group: {
             name: quizId,
-            put: true
           },
           animation: 150,
-          onEnd: checkAnswer
+          sort: false
         });
         
-        new Sortable(targetContainer, {
+        const targetSortable = new Sortable(targetContainer, {
           group: {
             name: quizId,
-            pull: true,
-            put: true
           },
           animation: 150,
-          onAdd: checkAnswer,
-          onRemove: checkAnswer
+          sort: false
         });
 
-        function checkAnswer() {
+        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
+        checkingButton.addEventListener("click", function (e) {
           const currentAnswers = new Set(
             Array.from(targetContainer.querySelectorAll('.choice'))
               .map(choice => choice.textContent.trim())
@@ -123,13 +142,30 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 
           const isCorrect = currentAnswers.size === correctAnswers.size &&
                            [...currentAnswers].every(answer => correctAnswers.has(answer));
-          
+
           if (isCorrect) {
             feedback.textContent = "✅";
+
+            checkingButton.setAttribute("disabled", "");
+
+            const groupSetting = {name: quizId, pull: false, put: false};
+            poolSortable.option("group", groupSetting);
+            targetSortable.option("group", groupSetting);
+
+            poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+            targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+            quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+            poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+            targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
           } else {
             feedback.textContent = "❌";
+
+            const buttonText = checkingButton.textContent.split(" ");
+            const count = parseInt(buttonText[1] ?? "0") + 1;
+            checkingButton.textContent = "Prüfen " + count.toString();
           }
-        }
+        })
     })();
   }, 100);
 </script>
@@ -150,10 +186,9 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
     </div>
   </div>
   
-  <div style="margin: 10px">
+  <div style="margin: 10px; display: flex; flex-direction: row; align-content: center;">
     <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
-    <br>
-    <span style="font-size: 2em" class="feedback"></span>
+    <span style="font-size: 1.5em" class="feedback"></span>
   </div>
 
 </div>
@@ -162,6 +197,7 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
   void setTimeout(() => {
     (function(){
         const quizId = '@0';
+        console.log("@3");
         const quizContainer = document.querySelector(`#quiz-${quizId}`);
 
         const poolContainer = quizContainer.querySelector('.pool-container');
@@ -223,6 +259,10 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 
             poolContainer.style.borderColor = "rgb(var(--lia-grey))";
             targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+            quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+            poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+            targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
           } else {
             feedback.textContent = "❌";
 
