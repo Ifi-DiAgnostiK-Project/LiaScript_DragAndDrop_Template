@@ -72,12 +72,12 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 <div style="width: 100%; max-width: 600px; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
   <div style="display: flex; gap: 20px;">
     <div style="flex: 1;">
-      <div style="font-weight: bold; margin-bottom: 10px;">Pool:</div>
+      <div style="font-weight: bold; margin-bottom: 10px;">Auswahl:</div>
       <div class="pool-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed; border-radius: 4px; display: flex; flex-direction: column; gap: 10px;" id="pool-@0">
       </div>
     </div>
     <div style="flex: 1;">
-      <div style="font-weight: bold; margin-bottom: 10px;">Your Selection:</div>
+      <div style="font-weight: bold; margin-bottom: 10px;">Antwort:</div>
       <div class="target-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed; border-radius: 4px; display: flex; flex-direction: column; gap: 10px;" id="target-@0">
       </div>
     </div>
