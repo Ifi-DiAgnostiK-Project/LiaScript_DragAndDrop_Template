@@ -25,44 +25,62 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         const quizContainer = document.querySelector(`#quiz-${quizId}`);
         const choicesContainer = quizContainer.querySelector('.choices-container');
         const feedback = quizContainer.querySelector('.feedback');
+        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
 
         const correctAnswers = '@2'.split('|');
         const initialOrder = '@1'.split('|');
 
-        choicesContainer.innerHTML = initialOrder.map(item => 
-          `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
-        ).join('');
-        
-        const sortable = new Sortable(choicesContainer, {
-          animation: 150,
-        });
-        
-        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
-        checkingButton.addEventListener("click", function (e) {
-          const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
-          const currentOrder = choices.map(choice => choice.textContent.trim());
-          
-          const isCorrect = currentOrder.length === correctAnswers.length && 
-                            currentOrder.every((answer, index) => answer === correctAnswers[index]);
+        const solvedKey = `quiz-${quizId}-solved`;
+        const solved = sessionStorage.getItem(solvedKey);
+        if (solved) {
+          choicesContainer.innerHTML = correctAnswers.map(item => 
+            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
+          ).join('');
 
-          if (isCorrect) {
-            feedback.textContent = "✅";
+          feedback.textContent = "✅";
 
-            checkingButton.setAttribute("disabled", "");
+          checkingButton.setAttribute("disabled", "");
 
-            choicesContainer.style.borderColor = "rgb(var(--lia-grey))";
-            quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+          choicesContainer.style.borderColor = "rgb(var(--lia-grey))";
+          quizContainer.style.borderColor = "rgb(var(--lia-grey))";
 
-            choicesContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+          choicesContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
           } else {
-            feedback.textContent = "❌";
+          choicesContainer.innerHTML = initialOrder.map(item => 
+            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
+          ).join('');
+          
+          const sortable = new Sortable(choicesContainer, {
+            animation: 150,
+          });
+          
+          checkingButton.addEventListener("click", function (e) {
+            const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
+            const currentOrder = choices.map(choice => choice.textContent.trim());
+            
+            const isCorrect = currentOrder.length === correctAnswers.length && 
+                              currentOrder.every((answer, index) => answer === correctAnswers[index]);
 
             const buttonText = checkingButton.textContent.split(" ");
             const count = parseInt(buttonText[1] ?? "0") + 1;
-            checkingButton.textContent = "Prüfen " + count.toString();
-          }
-        })
-        
+
+            if (isCorrect) {
+              sessionStorage.setItem(solvedKey, count);
+
+              feedback.textContent = "✅";
+
+              checkingButton.setAttribute("disabled", "");
+
+              choicesContainer.style.borderColor = "rgb(var(--lia-grey))";
+              quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+              choicesContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+            } else {
+              feedback.textContent = "❌";
+              checkingButton.textContent = "Prüfen " + count.toString();
+            }
+          })
+        }
     })();
   }, 100);
 </script>
@@ -99,73 +117,102 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         const poolContainer = quizContainer.querySelector('.pool-container');
         const targetContainer = quizContainer.querySelector('.target-container');
         const feedback = quizContainer.querySelector('.feedback');
+        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
 
-        const correctAnswers = new Set('@1'.split('|'));
+        const correctAnswers = '@1'.split('|');
         const wrongAnswers = '@2'.split('|');
         const allAnswers = [...correctAnswers, ...wrongAnswers];
 
-        //shuffle array
-        for (var i = allAnswers.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var temp = allAnswers[i];
-            allAnswers[i] = allAnswers[j];
-            allAnswers[j] = temp;
-        }
+        const solvedKey = `quiz-${quizId}-solved`;
+        const solved = sessionStorage.getItem(solvedKey);
 
-        poolContainer.innerHTML = allAnswers.map(item => 
-          `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
-        ).join('');
-        targetContainer.innerHTML = "";
+        if (solved) {
+          poolContainer.innerHTML = wrongAnswers.map(item => 
+            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
+          ).join('');
+          targetContainer.innerHTML = correctAnswers.map(item => 
+            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
+          ).join('');
 
-        const poolSortable = new Sortable(poolContainer, {
-          group: {
-            name: quizId,
-          },
-          animation: 150,
-          sort: false
-        });
-        
-        const targetSortable = new Sortable(targetContainer, {
-          group: {
-            name: quizId,
-          },
-          animation: 150,
-          sort: false
-        });
+          feedback.textContent = "✅";
 
-        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
-        checkingButton.addEventListener("click", function (e) {
-          const currentAnswers = new Set(
-            Array.from(targetContainer.querySelectorAll('.choice'))
-              .map(choice => choice.textContent.trim())
-          );
+          checkingButton.setAttribute("disabled", "");
+          checkingButton.textContent = "Prüfen " + solved.toString();
 
-          const isCorrect = currentAnswers.size === correctAnswers.size &&
-                           [...currentAnswers].every(answer => correctAnswers.has(answer));
+          poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+          targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+          quizContainer.style.borderColor = "rgb(var(--lia-grey))";
 
-          if (isCorrect) {
-            feedback.textContent = "✅";
+          poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+          targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+        } else {
+          //shuffle array
+          for (var i = allAnswers.length - 1; i > 0; i--) {
+              var j = Math.floor(Math.random() * (i + 1));
+              var temp = allAnswers[i];
+              allAnswers[i] = allAnswers[j];
+              allAnswers[j] = temp;
+          }
 
-            checkingButton.setAttribute("disabled", "");
+          poolContainer.innerHTML = allAnswers.map(item => 
+            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
+          ).join('');
+          targetContainer.innerHTML = "";
 
-            const groupSetting = {name: quizId, pull: false, put: false};
-            poolSortable.option("group", groupSetting);
-            targetSortable.option("group", groupSetting);
+          const poolSortable = new Sortable(poolContainer, {
+            group: {
+              name: quizId,
+            },
+            animation: 150,
+            sort: false
+          });
+          
+          const targetSortable = new Sortable(targetContainer, {
+            group: {
+              name: quizId,
+            },
+            animation: 150,
+            sort: false
+          });
 
-            poolContainer.style.borderColor = "rgb(var(--lia-grey))";
-            targetContainer.style.borderColor = "rgb(var(--lia-grey))";
-            quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+          checkingButton.addEventListener("click", function (e) {
+            const currentAnswers = new Set(
+              Array.from(targetContainer.querySelectorAll('.choice'))
+                .map(choice => choice.textContent.trim())
+            );
 
-            poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-            targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-          } else {
-            feedback.textContent = "❌";
+            console.log(currentAnswers);
+            console.log(correctAnswers);
+
+            const isCorrect = currentAnswers.size === correctAnswers.size &&
+                            [...currentAnswers].every(answer => correctAnswers.has(answer));
 
             const buttonText = checkingButton.textContent.split(" ");
             const count = parseInt(buttonText[1] ?? "0") + 1;
-            checkingButton.textContent = "Prüfen " + count.toString();
-          }
-        })
+
+            if (isCorrect) {
+              sessionStorage.setItem(solvedKey, count);
+
+              const groupSetting = {name: quizId, pull: false, put: false};
+              poolSortable.option("group", groupSetting);
+              targetSortable.option("group", groupSetting);
+
+              feedback.textContent = "✅";
+
+              checkingButton.setAttribute("disabled", "");
+
+              poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+              targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+              quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+              poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+              targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+            } else {
+              feedback.textContent = "❌";
+              checkingButton.textContent = "Prüfen " + count.toString();
+            }
+          })
+        }
     })();
   }, 100);
 </script>
@@ -197,80 +244,103 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
   void setTimeout(() => {
     (function(){
         const quizId = '@0';
-        console.log("@3");
         const quizContainer = document.querySelector(`#quiz-${quizId}`);
 
         const poolContainer = quizContainer.querySelector('.pool-container');
         const targetContainer = quizContainer.querySelector('.target-container');
         const feedback = quizContainer.querySelector('.feedback');
+        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
 
-        const correctAnswers = new Set('@1'.split('|').map((url) => encodeURI(url.replace(" ", ""))));
+        const correctAnswers = '@1'.split('|').map((url) => encodeURI(url.replace(" ", "")));
         const wrongAnswers = '@2'.split('|').map((url) => url.replace(" ", ""));
         const allAnswers = [...correctAnswers, ...wrongAnswers];
 
-        //shuffle array
-        for (var i = allAnswers.length - 1; i > 0; i--) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var temp = allAnswers[i];
-            allAnswers[i] = allAnswers[j];
-            allAnswers[j] = temp;
-        }
+        const solvedKey = `quiz-${quizId}-solved`;
+        const solved = sessionStorage.getItem(solvedKey);
+        if (solved){
+          poolContainer.innerHTML = wrongAnswers.map(item => 
+            `<img src="${item}" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
+          ).join('');
+          targetContainer.innerHTML = correctAnswers.map(item => 
+            `<img src="${item}" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
+          ).join('');
 
-        poolContainer.innerHTML = allAnswers.map(item => 
-          `<img src="${item}" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
-        ).join('');
-        targetContainer.innerHTML = "";
+          feedback.textContent = "✅";
+          checkingButton.textContent = "Prüfen " + solved.toString();
 
-        const poolSortable = new Sortable(poolContainer, {
-          group: {
-            name: quizId
-          },
-          animation: 150,
-          sort: false
-        });
-        
-        const targetSortable = new Sortable(targetContainer, {
-          group: {
-            name: quizId
-          },
-          animation: 150,
-          sort: false
-        });
+          checkingButton.setAttribute("disabled", "");
 
-        
-        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
-        checkingButton.addEventListener("click", function (e) {
-          const currentAnswers = new Set(
-            Array.from(targetContainer.querySelectorAll('.choice'))
-              .map(choice => choice.src)
-          );
+          poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+          targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+          quizContainer.style.borderColor = "rgb(var(--lia-grey))";
 
-          const isCorrect = currentAnswers.size === correctAnswers.size &&
-                           [...currentAnswers].every(answer => correctAnswers.has(answer));
+          poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+          targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+        } else {
+          //shuffle array
+          for (var i = allAnswers.length - 1; i > 0; i--) {
+              var j = Math.floor(Math.random() * (i + 1));
+              var temp = allAnswers[i];
+              allAnswers[i] = allAnswers[j];
+              allAnswers[j] = temp;
+          }
 
-          if (isCorrect) {
-            feedback.textContent = "✅";
+          poolContainer.innerHTML = allAnswers.map(item => 
+            `<img src="${item}" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
+          ).join('');
+          targetContainer.innerHTML = "";
 
-            checkingButton.setAttribute("disabled", "");
+          const poolSortable = new Sortable(poolContainer, {
+            group: {
+              name: quizId
+            },
+            animation: 150,
+            sort: false
+          });
+          
+          const targetSortable = new Sortable(targetContainer, {
+            group: {
+              name: quizId
+            },
+            animation: 150,
+            sort: false
+          });
 
-            const groupSetting = {name: quizId, pull: false, put: false};
-            poolSortable.option("group", groupSetting);
-            targetSortable.option("group", groupSetting);
+          checkingButton.addEventListener("click", function (e) {
+            const currentAnswers = new Set(
+              Array.from(targetContainer.querySelectorAll('.choice'))
+                .map(choice => choice.src)
+            );
 
-            poolContainer.style.borderColor = "rgb(var(--lia-grey))";
-            targetContainer.style.borderColor = "rgb(var(--lia-grey))";
-            quizContainer.style.borderColor = "rgb(var(--lia-grey))";
-
-            poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-            targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-          } else {
-            feedback.textContent = "❌";
+            const isCorrect = currentAnswers.size === correctAnswers.size &&
+                            [...currentAnswers].every(answer => correctAnswers.has(answer));
 
             const buttonText = checkingButton.textContent.split(" ");
             const count = parseInt(buttonText[1] ?? "0") + 1;
-            checkingButton.textContent = "Prüfen " + count.toString();
-          }
-        })
+
+            if (isCorrect) {
+              sessionStorage.setItem(solvedKey, count);
+
+              const groupSetting = {name: quizId, pull: false, put: false};
+              poolSortable.option("group", groupSetting);
+              targetSortable.option("group", groupSetting);
+
+              feedback.textContent = "✅";
+
+              checkingButton.setAttribute("disabled", "");
+
+              poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+              targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+              quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+              poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+              targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+            } else {
+              feedback.textContent = "❌";
+              checkingButton.textContent = "Prüfen " + count.toString();
+            }
+          })
+        }
     })();
   }, 100);
 </script>
