@@ -12,13 +12,35 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
   <div class="choices-container" style="display: flex; flex-direction: column; gap: 10px;">
   </div>
 
-  <div style="margin: 10px; display: flex; flex-direction: row; align-content: center;">
+  <div style="margin-top: 10px;">
     <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
-    <span style="font-size: 1.5em" class="feedback"></span>
+    <br>
+    <span class="feedback"></span>
   </div>
 </div>
 
 <script>
+  const quizData = {
+    solved: false,
+    tries: 0,
+    currentAnswer: null
+  }
+
+  function lockQuiz(feedback, checkingButton, choicesContainer, quizContainer){
+    feedback.textContent = "Herzlichen Glückwunsch, das war die richtige Antwort";
+    feedback.style.color = "rgb(var(--lia-success))";
+
+    checkingButton.setAttribute("disabled", "");
+
+    choicesContainer.style.borderColor = "rgb(var(--lia-grey))";
+    quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+    choicesContainer.querySelectorAll("*").forEach((element) => {
+      element.style.cursor = "default";
+      element.style.borderColor = "rgb(var(--lia-grey))";
+    });
+  }
+
   void setTimeout(() => {
     (function(){
         const quizId = '@0';
@@ -27,29 +49,25 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         const feedback = quizContainer.querySelector('.feedback');
         const checkingButton = quizContainer.querySelector('.lia-quiz__check');
 
+        const dataKey = `quiz-${quizId}-data`;
+        const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
+
         const correctAnswers = '@2'.split('|');
-        const initialOrder = '@1'.split('|');
+        const currentAnswer = savedData.currentAnswer ?? '@1'.split('|');
 
-        const solvedKey = `quiz-${quizId}-solved`;
-        const solved = sessionStorage.getItem(solvedKey);
-        if (solved) {
-          choicesContainer.innerHTML = correctAnswers.map(item => 
-            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
-          ).join('');
+        choicesContainer.innerHTML = currentAnswer.map(item => 
+          `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
+        ).join('');
 
-          feedback.textContent = "✅";
+        if (savedData.tries > 0) {
+          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+          feedback.style.color = "rgb(var(--lia-red))";
+        }     
 
-          checkingButton.setAttribute("disabled", "");
-
-          choicesContainer.style.borderColor = "rgb(var(--lia-grey))";
-          quizContainer.style.borderColor = "rgb(var(--lia-grey))";
-
-          choicesContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-          } else {
-          choicesContainer.innerHTML = initialOrder.map(item => 
-            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
-          ).join('');
-          
+        if (savedData.solved) {
+          lockQuiz(feedback, checkingButton, choicesContainer, quizContainer);
+        } else {
           const sortable = new Sortable(choicesContainer, {
             animation: 150,
           });
@@ -57,28 +75,24 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
           checkingButton.addEventListener("click", function (e) {
             const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
             const currentOrder = choices.map(choice => choice.textContent.trim());
+
+            savedData.currentAnswer = currentOrder;
             
             const isCorrect = currentOrder.length === correctAnswers.length && 
                               currentOrder.every((answer, index) => answer === correctAnswers[index]);
 
-            const buttonText = checkingButton.textContent.split(" ");
-            const count = parseInt(buttonText[1] ?? "0") + 1;
+            savedData.tries++;
+            checkingButton.textContent = "Prüfen " + savedData.tries.toString();
 
             if (isCorrect) {
-              sessionStorage.setItem(solvedKey, count);
-
-              feedback.textContent = "✅";
-
-              checkingButton.setAttribute("disabled", "");
-
-              choicesContainer.style.borderColor = "rgb(var(--lia-grey))";
-              quizContainer.style.borderColor = "rgb(var(--lia-grey))";
-
-              choicesContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+              savedData.solved = true;
+              lockQuiz(feedback, checkingButton, choicesContainer, quizContainer);
             } else {
-              feedback.textContent = "❌";
-              checkingButton.textContent = "Prüfen " + count.toString();
+              feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+              feedback.style.color = "rgb(var(--lia-red))";
             }
+
+            sessionStorage.setItem(dataKey, JSON.stringify(savedData));
           })
         }
     })();
@@ -87,138 +101,6 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 @end
 
 @dragdropmultiple
-<div style="width: 100%; max-width: 600px; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
-  <div style="display: flex; gap: 20px;">
-    <div style="flex: 1;">
-      <div style="font-weight: bold; margin-bottom: 10px;">Auswahl:</div>
-      <div class="pool-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed; border-radius: 4px; display: flex; flex-direction: column; gap: 10px;" id="pool-@0">
-      </div>
-    </div>
-    <div style="flex: 1;">
-      <div style="font-weight: bold; margin-bottom: 10px;">Antwort:</div>
-      <div class="target-container lia-code lia-code--inline" style="min-height: 50px; padding: 10px; border: 1px dashed; border-radius: 4px; display: flex; flex-direction: column; gap: 10px;" id="target-@0">
-      </div>
-    </div>
-  </div>
-  
-  
-  <div style="margin: 10px; display: flex; flex-direction: row; align-content: center;">
-    <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
-    <span style="font-size: 1.5em" class="feedback"></span>
-  </div>
-</div>
-
-<script>
-  void setTimeout(() => {
-    (function(){
-        const quizId = '@0';
-        const quizContainer = document.querySelector(`#quiz-${quizId}`);
-
-        const poolContainer = quizContainer.querySelector('.pool-container');
-        const targetContainer = quizContainer.querySelector('.target-container');
-        const feedback = quizContainer.querySelector('.feedback');
-        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
-
-        const correctAnswers = '@1'.split('|');
-        const wrongAnswers = '@2'.split('|');
-        const allAnswers = [...correctAnswers, ...wrongAnswers];
-
-        const solvedKey = `quiz-${quizId}-solved`;
-        const solved = sessionStorage.getItem(solvedKey);
-
-        if (solved) {
-          poolContainer.innerHTML = wrongAnswers.map(item => 
-            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
-          ).join('');
-          targetContainer.innerHTML = correctAnswers.map(item => 
-            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
-          ).join('');
-
-          feedback.textContent = "✅";
-
-          checkingButton.setAttribute("disabled", "");
-          checkingButton.textContent = "Prüfen " + solved.toString();
-
-          poolContainer.style.borderColor = "rgb(var(--lia-grey))";
-          targetContainer.style.borderColor = "rgb(var(--lia-grey))";
-          quizContainer.style.borderColor = "rgb(var(--lia-grey))";
-
-          poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-          targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-        } else {
-          //shuffle array
-          for (var i = allAnswers.length - 1; i > 0; i--) {
-              var j = Math.floor(Math.random() * (i + 1));
-              var temp = allAnswers[i];
-              allAnswers[i] = allAnswers[j];
-              allAnswers[j] = temp;
-          }
-
-          poolContainer.innerHTML = allAnswers.map(item => 
-            `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
-          ).join('');
-          targetContainer.innerHTML = "";
-
-          const poolSortable = new Sortable(poolContainer, {
-            group: {
-              name: quizId,
-            },
-            animation: 150,
-            sort: false
-          });
-          
-          const targetSortable = new Sortable(targetContainer, {
-            group: {
-              name: quizId,
-            },
-            animation: 150,
-            sort: false
-          });
-
-          checkingButton.addEventListener("click", function (e) {
-            const currentAnswers = new Set(
-              Array.from(targetContainer.querySelectorAll('.choice'))
-                .map(choice => choice.textContent.trim())
-            );
-
-            console.log(currentAnswers);
-            console.log(correctAnswers);
-
-            const isCorrect = currentAnswers.size === correctAnswers.size &&
-                            [...currentAnswers].every(answer => correctAnswers.has(answer));
-
-            const buttonText = checkingButton.textContent.split(" ");
-            const count = parseInt(buttonText[1] ?? "0") + 1;
-
-            if (isCorrect) {
-              sessionStorage.setItem(solvedKey, count);
-
-              const groupSetting = {name: quizId, pull: false, put: false};
-              poolSortable.option("group", groupSetting);
-              targetSortable.option("group", groupSetting);
-
-              feedback.textContent = "✅";
-
-              checkingButton.setAttribute("disabled", "");
-
-              poolContainer.style.borderColor = "rgb(var(--lia-grey))";
-              targetContainer.style.borderColor = "rgb(var(--lia-grey))";
-              quizContainer.style.borderColor = "rgb(var(--lia-grey))";
-
-              poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-              targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-            } else {
-              feedback.textContent = "❌";
-              checkingButton.textContent = "Prüfen " + count.toString();
-            }
-          })
-        }
-    })();
-  }, 100);
-</script>
-@end
-
-@dragdropmultipleimages
 <div style="width: 100%; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
   <div style="display: flex; gap: 20px;">
     <div style="flex: 1;">
@@ -233,14 +115,48 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
     </div>
   </div>
   
-  <div style="margin: 10px; display: flex; flex-direction: row; align-content: center;">
+  
+  <div style="margin: 10px">
     <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
-    <span style="font-size: 1.5em" class="feedback"></span>
+    <br>
+    <span class="feedback"></span>
   </div>
-
 </div>
 
-<script>
+<script>  
+  const quizData = {
+    solved: false,
+    tries: 0,
+    currentPool: null,
+    currentAnswer: []
+  }
+
+  function lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer){
+    feedback.textContent = "Herzlichen Glückwunsch, das war die richtige Antwort";
+    feedback.style.color = "rgb(var(--lia-success))";
+
+    checkingButton.setAttribute("disabled", "");
+
+    poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+    targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+    quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+    poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+    targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+  }
+
+  function isValidHttpUrl(string) {
+    let url;
+    
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;  
+    }
+
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
+
   void setTimeout(() => {
     (function(){
         const quizId = '@0';
@@ -251,32 +167,20 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
         const feedback = quizContainer.querySelector('.feedback');
         const checkingButton = quizContainer.querySelector('.lia-quiz__check');
 
-        const correctAnswers = '@1'.split('|').map((url) => encodeURI(url.replace(" ", "")));
-        const wrongAnswers = '@2'.split('|').map((url) => url.replace(" ", ""));
+        const dataKey = `quiz-${quizId}-data`;
+        const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
+
+        let correctAnswers = '@1'.split('|');
+        const wrongAnswers = '@2'.split('|');
         const allAnswers = [...correctAnswers, ...wrongAnswers];
 
-        const solvedKey = `quiz-${quizId}-solved`;
-        const solved = sessionStorage.getItem(solvedKey);
-        if (solved){
-          poolContainer.innerHTML = wrongAnswers.map(item => 
-            `<img src="${item}" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
-          ).join('');
-          targetContainer.innerHTML = correctAnswers.map(item => 
-            `<img src="${item}" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
-          ).join('');
+        const mode = allAnswers.every((answer) => isValidHttpUrl(answer)) ? "image" : "text";
+        if (mode === "image") {
+          correctAnswers = correctAnswers.map((url) => encodeURI(url.replace(" ", "")));
+        }
 
-          feedback.textContent = "✅";
-          checkingButton.textContent = "Prüfen " + solved.toString();
-
-          checkingButton.setAttribute("disabled", "");
-
-          poolContainer.style.borderColor = "rgb(var(--lia-grey))";
-          targetContainer.style.borderColor = "rgb(var(--lia-grey))";
-          quizContainer.style.borderColor = "rgb(var(--lia-grey))";
-
-          poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-          targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-        } else {
+        let currentPool = savedData.currentPool;
+        if (currentPool === null) {
           //shuffle array
           for (var i = allAnswers.length - 1; i > 0; i--) {
               var j = Math.floor(Math.random() * (i + 1));
@@ -285,14 +189,28 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
               allAnswers[j] = temp;
           }
 
-          poolContainer.innerHTML = allAnswers.map(item => 
-            `<img src="${item}" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
-          ).join('');
-          targetContainer.innerHTML = "";
+          currentPool = allAnswers;
+        }
 
+        const formatString = (mode === "image")
+          ? `<img src="placeholder" class="choice" style="cursor: move; user-select: none; max-width: 100%; max-height: 10rem">`
+          : `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">placeholder</div>`;
+
+        poolContainer.innerHTML = currentPool.map(item => formatString.replace("placeholder", item)).join('');
+        targetContainer.innerHTML = savedData.currentAnswer.map(item => formatString.replace("placeholder", item)).join('');
+
+        if (savedData.tries > 0) {
+          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+          feedback.style.color = "rgb(var(--lia-red))";
+        }     
+
+        if (savedData.solved) {
+          lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
+        } else {
           const poolSortable = new Sortable(poolContainer, {
             group: {
-              name: quizId
+              name: quizId,
             },
             animation: 150,
             sort: false
@@ -300,50 +218,51 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
           
           const targetSortable = new Sortable(targetContainer, {
             group: {
-              name: quizId
+              name: quizId,
             },
             animation: 150,
             sort: false
           });
 
           checkingButton.addEventListener("click", function (e) {
-            const currentAnswers = new Set(
-              Array.from(targetContainer.querySelectorAll('.choice'))
-                .map(choice => choice.src)
-            );
+            const currentAnswers = Array.from(targetContainer.querySelectorAll('.choice'))
+                                        .map(choice => (mode === "image") ? choice.src : choice.textContent.trim());
+            savedData.currentAnswer = currentAnswers;
 
-            const isCorrect = currentAnswers.size === correctAnswers.size &&
-                            [...currentAnswers].every(answer => correctAnswers.has(answer));
+            savedData.currentPool = Array.from(poolContainer.querySelectorAll('.choice'))
+                                        .map(choice => (mode === "image") ? choice.src : choice.textContent.trim());
+            
+            const isCorrect = currentAnswers.length === correctAnswers.length &&
+                              currentAnswers.every(answer => correctAnswers.includes(answer));
 
-            const buttonText = checkingButton.textContent.split(" ");
-            const count = parseInt(buttonText[1] ?? "0") + 1;
+            savedData.tries++;
+            checkingButton.textContent = "Prüfen " + savedData.tries.toString();
 
             if (isCorrect) {
-              sessionStorage.setItem(solvedKey, count);
+              savedData.solved = true;
 
               const groupSetting = {name: quizId, pull: false, put: false};
               poolSortable.option("group", groupSetting);
               targetSortable.option("group", groupSetting);
 
-              feedback.textContent = "✅";
-
-              checkingButton.setAttribute("disabled", "");
-
-              poolContainer.style.borderColor = "rgb(var(--lia-grey))";
-              targetContainer.style.borderColor = "rgb(var(--lia-grey))";
-              quizContainer.style.borderColor = "rgb(var(--lia-grey))";
-
-              poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-              targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+              lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
             } else {
-              feedback.textContent = "❌";
-              checkingButton.textContent = "Prüfen " + count.toString();
+              feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+              feedback.style.color = "rgb(var(--lia-red))";
             }
+
+            sessionStorage.setItem(dataKey, JSON.stringify(savedData));
           })
         }
     })();
   }, 100);
 </script>
+@end
+
+@dragdropmultipleimages
+<div style="width: 100%; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
+  <span style="font-size: 3rem; color: rgb(var(--lia-red))">dragdropmultiple unterstützt jetzt auch Bilder. <br> dragdropmultipleimages wird nicht weiter entwickelt!</span>
+</div>
 @end
 -->
 
@@ -362,6 +281,7 @@ To use these macros within your document, simply import it into LiaScript via:
 
 Try to order these items correctly by dragging and dropping them!
 
+<!-- data-randomize -->
 @dragdroporder(@uid,4|2|3|1,1|2|3|4)
 
 Try to order these items correctly by dragging and dropping them (hint: should be a sentence)!
@@ -389,6 +309,7 @@ mustang: @basepath/mustang.jpg
 
 Select the correct images from the pool (hint: cars are cool, but planes are cooler)!
 
+@dragdropmultiple(@uid, @mustang|@f18, @chevrolet|@ford)
 @dragdropmultipleimages(@uid, @mustang|@f18, @chevrolet|@ford)
 
 ## How to use it in your LiaScript
