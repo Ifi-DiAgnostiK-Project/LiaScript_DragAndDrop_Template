@@ -310,7 +310,6 @@ mustang: @basepath/mustang.jpg
 Select the correct images from the pool (hint: cars are cool, but planes are cooler)!
 
 @dragdropmultiple(@uid, @mustang|@f18, @chevrolet|@ford)
-@dragdropmultipleimages(@uid, @mustang|@f18, @chevrolet|@ford)
 
 ## How to use it in your LiaScript
 
@@ -345,4 +344,4 @@ The signature for the selection quizzes is
 * `<wrong>` are the correct answers (again separated by `|`).
 
 If you want to use the image selection quiz, you need to input the whole public URL to the images as parameters.
-You might want to use makros in the case of many/long URLs. Just look at the source code of the example quiz to see how it works.
+You might want to use makros in the case of many/long URLs. Just look at the source code of the example quiz to see how it works. (Note: This only works if the comment is directly under the headline, and the makros only exist for that page. If you want to reuse them somewhere else, put them into the header comment.)
