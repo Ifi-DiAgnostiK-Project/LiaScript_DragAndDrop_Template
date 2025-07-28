@@ -6,6 +6,9 @@ language: de
 narrator: US English Female
 
 script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
+import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Piktogramme/refs/heads/main/makros.md
+import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/LiaScript_ImageQuiz/refs/heads/main/README.md
+import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/heads/main/makros.md
 
 @dragdroporder
 <div style="width: 100%; max-width: 600px; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
@@ -176,7 +179,7 @@ script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 
         const mode = allAnswers.every((answer) => isValidHttpUrl(answer)) ? "image" : "text";
         if (mode === "image") {
-          correctAnswers = correctAnswers.map((url) => encodeURI(url.replace(" ", "")));
+          correctAnswers = correctAnswers.map((url) => encodeURI(url.replaceAll(" ", "")));
         }
 
         let currentPool = savedData.currentPool;
