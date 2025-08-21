@@ -267,9 +267,201 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
   <span style="font-size: 3rem; color: rgb(var(--lia-red))">dragdropmultiple unterstützt jetzt auch Bilder. <br> dragdropmultipleimages wird nicht weiter entwickelt!</span>
 </div>
 @end
+
+@dragdropassign
+<div style="width: 100%; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
+  <div style="display: flex; gap: 20px;">
+    <div class="pool-container" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+    </div>
+    <div style="flex: 2;">
+      <div class="target-container" style="display: flex; flex-direction: column; gap: 10px;">
+      </div>
+    </div>
+  </div>
+  
+  <div style="margin: 10px">
+    <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
+    <br>
+    <span class="feedback"></span>
+  </div>
+</div>
+
+<script>  
+  const quizData = {
+    solved: false,
+    tries: 0,
+    currentPool: null,
+    currentAnswer: []
+  }
+
+  function lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer){
+    feedback.textContent = "Herzlichen Glückwunsch, das war die richtige Antwort";
+    feedback.style.color = "rgb(var(--lia-success))";
+
+    checkingButton.setAttribute("disabled", "");
+
+    poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+    targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+    quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+    poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+    targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+  }
+
+  function dropHandler(ev) {
+    ev.preventDefault();
+    const data = ev.dataTransfer.getData("text");
+    if (ev.target.classList.contains("droppable")) {
+      ev.target.appendChild(document.getElementById(data));
+    }
+  }
+  
+  function dragstartHandler(ev) {
+    ev.dataTransfer.setData("text", ev.target.id);
+  }
+
+  function dragoverHandler(ev) {
+    ev.preventDefault();
+  }
+
+  function isValidHttpUrl(string) {
+    let url;
+    
+    try {
+      url = new URL(string);
+    } catch (_) {
+      return false;  
+    }
+
+    return url.protocol === "http:" || url.protocol === "https:";
+  }
+
+  void setTimeout(() => {
+    (function(){
+        const quizId = '@0';
+        const quizContainer = document.querySelector(`#quiz-${quizId}`);
+
+        const poolContainer = quizContainer.querySelector('.pool-container');
+        const targetContainer = quizContainer.querySelector('.target-container');
+        const feedback = quizContainer.querySelector('.feedback');
+        const checkingButton = quizContainer.querySelector('.lia-quiz__check');
+
+        const dataKey = `quiz-${quizId}-data`;
+        const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
+
+        let targets = [];
+        let pool = [];
+        '@1'.split('|').forEach(pair => {
+          let splitPair = pair.split(':');
+          targets.push(splitPair[0]);
+          pool.push(splitPair[1]);
+        });
+
+        const mode = targets.every((item) => isValidHttpUrl(item)) && pool.every((item) => isValidHttpUrl(item))  ? "image" : "text";
+        if (mode === "image") {
+          targets = targets.map((url) => encodeURI(url.replaceAll(" ", "")));
+          pool = pool.map((url) => encodeURI(url.replaceAll(" ", "")));
+        }
+
+        let currentPool = savedData.currentPool;
+        if (currentPool === null) {
+          //shuffle array
+          currentPool = pool;
+
+          for (var i = currentPool.length - 1; i > 0; i--) {
+              var j = Math.floor(Math.random() * (i + 1));
+              var temp = currentPool[i];
+              currentPool[i] = currentPool[j];
+              currentPool[j] = temp;
+          }
+        }
+
+        for (let i = 0; i < pool.length; i++) {
+          let container;
+          if (mode === "image") {
+            container = document.createElement("img");
+            container.src = pool[i];
+            conatiner.classList.add("choice");
+            container.style.cssText = "flex: 1; cursor: move; user-select: none; max-width: 100%; max-height: 10rem";
+          } else {
+            container = document.createElement("div");
+            container.innerHTML = pool[i];
+            container.classList.add("choice", "lia-code", "lia-code--inline");
+            container.style.cssText = "flex: 1; padding: 10px; border-radius: 4px; cursor: move; user-select: none;";
+          };
+
+          container.draggable = "true";
+          container.ondragstart = dragstartHandler;
+
+          container.id = quizId + "-" + i;
+          
+          poolContainer.appendChild(container);
+        }
+
+        const formatStringTarget = (mode === "image")
+          ? `<img src="placeholder" style="flex: 1; user-select: none; max-width: 100%; max-height: 10rem">`
+          : `<div class="lia-code lia-code--inline" style="flex: 1; padding: 10px; border-radius: 4px; user-select: none;">placeholder</div>`;
+
+        targets.forEach(item => {
+          const outerDiv = document.createElement("div");
+          outerDiv.style.cssText = "display: flex; flex-direction: row-reverse; gap: 10px";
+          outerDiv.innerHTML = formatStringTarget.replace("placeholder", item);
+
+          let dropDiv = document.createElement("div");
+          dropDiv.classList.add("droppable");
+          dropDiv.ondrop = dropHandler;
+          dropDiv.ondragover = dragoverHandler;
+          dropDiv.style.cssText = "flex: 1; min-width: 100px, min-height: 100%; border: 1px dashed rgb(var(--color-highlight)); border-radius: 4px;";
+
+          outerDiv.appendChild(dropDiv);
+          targetContainer.appendChild(outerDiv);
+        });
+
+
+        if (savedData.tries > 0) {
+          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+          feedback.style.color = "rgb(var(--lia-red))";
+        }     
+
+        if (savedData.solved) {
+          lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
+        } else {
+          checkingButton.addEventListener("click", function (e) {
+            const currentAnswers = Array.from(targetContainer.querySelectorAll('.choice'))
+                                        .map(choice => (mode === "image") ? choice.src : choice.textContent.trim());
+            savedData.currentAnswer = currentAnswers;
+
+            savedData.currentPool = Array.from(poolContainer.querySelectorAll('.choice'))
+                                        .map(choice => (mode === "image") ? choice.src : choice.textContent.trim());
+            
+            const isCorrect = currentAnswers.length === pool.length &&
+                              currentAnswers.every(answer => pool.includes(answer));
+
+            savedData.tries++;
+            checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+
+            if (isCorrect) {
+              savedData.solved = true;
+
+              lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
+            } else {
+              feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+              feedback.style.color = "rgb(var(--lia-red))";
+            }
+
+            sessionStorage.setItem(dataKey, JSON.stringify(savedData));
+          })
+        }
+    })();
+  }, 100);
+</script>
+@end
 -->
 
 # Drag and Drop Quizzes
+
+@dragdropassign(@uid,Test1:Test11|Test2:Test22|Test3:Test33|Test4:Test44)
 
 This is a fork of Michael Markerts drag and drop quiz template which also allows has a mode for images.
 
