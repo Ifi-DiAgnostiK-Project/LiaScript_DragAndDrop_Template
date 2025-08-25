@@ -271,7 +271,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 @dragdropassign
 <div style="width: 100%; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
   <div style="display: flex; gap: 20px;">
-    <div class="pool-container" style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+    <div class="pool-container droppable" style="flex: 1; display: flex; flex-direction: column; gap: 10px; border: 1px dashed rgb(var(--color-highlight)); border-radius: 4px; padding: 5px; ">
     </div>
     <div style="flex: 2;">
       <div class="target-container" style="display: flex; flex-direction: column; gap: 10px;">
@@ -291,7 +291,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
     solved: false,
     tries: 0,
     currentPool: null,
-    currentAnswer: []
+    currentAnswers: []
   }
 
   function lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer){
@@ -313,6 +313,8 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
     const data = ev.dataTransfer.getData("text");
     if (ev.target.classList.contains("droppable")) {
       ev.target.appendChild(document.getElementById(data));
+    } else {
+      ev.target.parentElement.appendChild(document.getElementById(data));
     }
   }
   
@@ -351,10 +353,16 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 
         let targets = [];
         let pool = [];
+        let correctAnswers = [];
+
         '@1'.split('|').forEach(pair => {
           let splitPair = pair.split(':');
           targets.push(splitPair[0]);
-          pool.push(splitPair[1]);
+
+          splitPair.shift();
+
+          pool.push(...splitPair);
+          correctAnswers.push(splitPair)
         });
 
         const mode = targets.every((item) => isValidHttpUrl(item)) && pool.every((item) => isValidHttpUrl(item))  ? "image" : "text";
@@ -382,12 +390,12 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
             container = document.createElement("img");
             container.src = pool[i];
             conatiner.classList.add("choice");
-            container.style.cssText = "flex: 1; cursor: move; user-select: none; max-width: 100%; max-height: 10rem";
+            container.style.cssText = "cursor: move; user-select: none; max-width: 100%; max-height: 10rem";
           } else {
             container = document.createElement("div");
             container.innerHTML = pool[i];
             container.classList.add("choice", "lia-code", "lia-code--inline");
-            container.style.cssText = "flex: 1; padding: 10px; border-radius: 4px; cursor: move; user-select: none;";
+            container.style.cssText = "padding: 10px; border-radius: 4px; cursor: move; user-select: none;";
           };
 
           container.draggable = "true";
@@ -398,9 +406,12 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
           poolContainer.appendChild(container);
         }
 
+        poolContainer.ondrop = dropHandler;
+        poolContainer.ondragover = dragoverHandler;
+
         const formatStringTarget = (mode === "image")
           ? `<img src="placeholder" style="flex: 1; user-select: none; max-width: 100%; max-height: 10rem">`
-          : `<div class="lia-code lia-code--inline" style="flex: 1; padding: 10px; border-radius: 4px; user-select: none;">placeholder</div>`;
+          : `<div class="lia-code lia-code--inline" style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; border-radius: 4px; user-select: none"><span>placeholder</span></div>`;
 
         targets.forEach(item => {
           const outerDiv = document.createElement("div");
@@ -411,7 +422,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
           dropDiv.classList.add("droppable");
           dropDiv.ondrop = dropHandler;
           dropDiv.ondragover = dragoverHandler;
-          dropDiv.style.cssText = "flex: 1; min-width: 100px, min-height: 100%; border: 1px dashed rgb(var(--color-highlight)); border-radius: 4px;";
+          dropDiv.style.cssText = "flex: 1; min-width: 100px, min-height: 100%; border: 1px dashed rgb(var(--color-highlight)); border-radius: 4px; padding: 5px; display: flex; flex-direction: column; gap: 5px";
 
           outerDiv.appendChild(dropDiv);
           targetContainer.appendChild(outerDiv);
@@ -428,15 +439,22 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
           lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
         } else {
           checkingButton.addEventListener("click", function (e) {
-            const currentAnswers = Array.from(targetContainer.querySelectorAll('.choice'))
-                                        .map(choice => (mode === "image") ? choice.src : choice.textContent.trim());
-            savedData.currentAnswer = currentAnswers;
+            const currentAnswers = Array
+                                    .from(targetContainer.querySelectorAll('.droppable'))
+                                    .map(dropContainer => dropContainer.querySelectorAll('.choice'))
+                                    .map(answers => Array.from(answers).map(choice => (mode === "image") ? choice.src : choice.textContent.trim()));
+            savedData.currentAnswers = currentAnswers;
 
             savedData.currentPool = Array.from(poolContainer.querySelectorAll('.choice'))
                                         .map(choice => (mode === "image") ? choice.src : choice.textContent.trim());
             
-            const isCorrect = currentAnswers.length === pool.length &&
-                              currentAnswers.every(answer => pool.includes(answer));
+            let isCorrect = true;
+            for (let i = 0; i < currentAnswers.length; i++) {
+              if (! (currentAnswers[i].length === correctAnswers[i].length && currentAnswers[i].every(answer => correctAnswers[i].includes(answer)))) {
+                isCorrect = false;
+                break;
+              }
+            }
 
             savedData.tries++;
             checkingButton.textContent = "Prüfen " + savedData.tries.toString();
@@ -461,7 +479,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 
 # Drag and Drop Quizzes
 
-@dragdropassign(@uid,Test1:Test11|Test2:Test22|Test3:Test33|Test4:Test44)
+@dragdropassign(@uid,Test1:Test111:Test11|Test2:Test22|Test3:Test33|Test4:Test44)
 
 This is a fork of Michael Markerts drag and drop quiz template which also allows has a mode for images.
 
