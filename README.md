@@ -268,7 +268,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 </div>
 @end
 
-@dragdropassign
+@dragdropsort
 <div style="width: 100%; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
   <div style="display: flex; gap: 20px;">
     <div class="pool-container droppable" style="flex: 1; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; border: 1px dashed rgb(var(--color-highlight)); border-radius: 4px; padding: 5px; padding-bottom: 15px">
@@ -357,7 +357,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
         let correctAnswers = [];
 
         '@1'.split('|').forEach(pair => {
-          let splitPair = pair.split(':');
+          let splitPair = pair.split(';');
           targets.push(splitPair[0]);
 
           splitPair.shift();
@@ -366,9 +366,8 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
           correctAnswers.push(splitPair)
         });
 
-        const mode = targets.every((item) => isValidHttpUrl(item)) && pool.every((item) => isValidHttpUrl(item))  ? "image" : "text";
+        const mode = pool.every((item) => isValidHttpUrl(item))  ? "image" : "text";
         if (mode === "image") {
-          targets = targets.map((url) => encodeURI(url.replaceAll(" ", "")));
           pool = pool.map((url) => encodeURI(url.replaceAll(" ", "")));
         }
 
@@ -390,8 +389,8 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
           if (mode === "image") {
             container = document.createElement("img");
             container.src = currentPool[i];
-            conatiner.classList.add("choice");
-            container.style.cssText = "cursor: move; user-select: none; max-width: 100%; max-height: 10rem";
+            container.classList.add("choice");
+            container.style.cssText = "cursor: move; user-select: none; max-width: 100%; max-height: 10rem; object-fit: contain";
           } else {
             container = document.createElement("div");
             container.innerHTML = currentPool[i];
@@ -410,14 +409,14 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
         poolContainer.ondrop = dropHandler;
         poolContainer.ondragover = dragoverHandler;
 
-        const formatStringTarget = (mode === "image")
-          ? `<img src="placeholder" style="flex: 1; user-select: none; max-width: 100%; max-height: 10rem">`
-          : `<div class="lia-code lia-code--inline" style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 10px; border-radius: 4px; user-select: none"><span>placeholder</span></div>`;
+        const formatStringImage = `<div class="lia-code lia-code--inline" style="flex: 1; display: flex; flex-direction: column; justify-content: center; border-radius: 4px; padding: 10px; user-select: none"><img src="placeholder" style="flex: 1; user-select: none; max-width: 100%; max-height: 10rem; object-fit: contain"></div>`;
+
+        const formatStringText = `<div class="lia-code lia-code--inline" style="flex: 1; display: flex; flex-direction: column; justify-content: center; border-radius: 4px; padding: 10px; user-select: none"><span>placeholder</span></div>`;
 
         targets.forEach(item => {
           const outerDiv = document.createElement("div");
           outerDiv.style.cssText = "display: flex; flex-direction: row-reverse; gap: 10px";
-          outerDiv.innerHTML = formatStringTarget.replace("placeholder", item);
+          outerDiv.innerHTML = isValidHttpUrl(item) ? formatStringImage.replace("placeholder", item) : formatStringText.replace("placeholder", item);
 
           let dropDiv = document.createElement("div");
           dropDiv.classList.add("droppable");
@@ -436,8 +435,8 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
             if (mode === "image") {
               container = document.createElement("img");
               container.src = savedData.currentAnswers[i][j];
-              conatiner.classList.add("choice");
-              container.style.cssText = "cursor: move; user-select: none; max-width: 100%; max-height: 10rem";
+              container.classList.add("choice");
+              container.style.cssText = "cursor: move; user-select: none; max-width: 100%; max-height: 10rem; object-fit: contain";
             } else {
               container = document.createElement("div");
               container.innerHTML = savedData.currentAnswers[i][j];
@@ -504,8 +503,12 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 -->
 
 # Drag and Drop Quizzes
+<!--
+@img: https://raw.githubusercontent.com/wenik35/LiaScript_ImageQuiz/main/img/mustang.jpg
+-->
 
-@dragdropassign(@uid,Test1:Test111:Test11|Test2:Test22|Test3:Test33|Test4:Test44)
+@dragdropsort(@uid,@img;Test111;Test11|Test2;Test22|Test3;Test33|Test4;Test44)
+@dragdropsort(@uid,Test1;@img|Test2;@img)
 
 This is a fork of Michael Markerts drag and drop quiz template which also allows has a mode for images.
 
