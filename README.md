@@ -271,7 +271,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 @dragdropassign
 <div style="width: 100%; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
   <div style="display: flex; gap: 20px;">
-    <div class="pool-container droppable" style="flex: 1; display: flex; flex-direction: column; gap: 10px; border: 1px dashed rgb(var(--color-highlight)); border-radius: 4px; padding: 5px; ">
+    <div class="pool-container droppable" style="flex: 1; margin-top: 10px; display: flex; flex-direction: column; gap: 10px; border: 1px dashed rgb(var(--color-highlight)); border-radius: 4px; padding: 5px; padding-bottom: 15px">
     </div>
     <div style="flex: 2;">
       <div class="target-container" style="display: flex; flex-direction: column; gap: 10px;">
@@ -294,18 +294,19 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
     currentAnswers: []
   }
 
-  function lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer){
+  function lockQuiz(feedback, checkingButton, quizContainer){
     feedback.textContent = "Herzlichen Glückwunsch, das war die richtige Antwort";
     feedback.style.color = "rgb(var(--lia-success))";
 
     checkingButton.setAttribute("disabled", "");
 
-    poolContainer.style.borderColor = "rgb(var(--lia-grey))";
-    targetContainer.style.borderColor = "rgb(var(--lia-grey))";
-    quizContainer.style.borderColor = "rgb(var(--lia-grey))";
-
-    poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
-    targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+    quizContainer
+      .querySelectorAll(".choice")
+      .forEach((element) => {
+        element.style.cursor = "default";
+        element.draggable = false;
+        element.style.borderColor = "rgb(var(--lia-grey))";
+      });
   }
 
   function dropHandler(ev) {
@@ -384,16 +385,16 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
           }
         }
 
-        for (let i = 0; i < pool.length; i++) {
+        for (let i = 0; i < currentPool.length; i++) {
           let container;
           if (mode === "image") {
             container = document.createElement("img");
-            container.src = pool[i];
+            container.src = currentPool[i];
             conatiner.classList.add("choice");
             container.style.cssText = "cursor: move; user-select: none; max-width: 100%; max-height: 10rem";
           } else {
             container = document.createElement("div");
-            container.innerHTML = pool[i];
+            container.innerHTML = currentPool[i];
             container.classList.add("choice", "lia-code", "lia-code--inline");
             container.style.cssText = "padding: 10px; border-radius: 4px; cursor: move; user-select: none;";
           };
@@ -428,6 +429,31 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
           targetContainer.appendChild(outerDiv);
         });
 
+        const droppables = targetContainer.querySelectorAll(".droppable");
+        for (let i = 0; i < savedData.currentAnswers.length; i++) {
+          for (let j = 0; j < savedData.currentAnswers[i].length; j++) {
+            let container;
+            if (mode === "image") {
+              container = document.createElement("img");
+              container.src = savedData.currentAnswers[i][j];
+              conatiner.classList.add("choice");
+              container.style.cssText = "cursor: move; user-select: none; max-width: 100%; max-height: 10rem";
+            } else {
+              container = document.createElement("div");
+              container.innerHTML = savedData.currentAnswers[i][j];
+              container.classList.add("choice", "lia-code", "lia-code--inline");
+              container.style.cssText = "padding: 10px; border-radius: 4px; cursor: move; user-select: none;";
+            };
+
+            container.draggable = "true";
+            container.ondragstart = dragstartHandler;
+
+            container.id = quizId + "-" + i + j;
+            
+            droppables[i].appendChild(container);
+          }
+        }
+
 
         if (savedData.tries > 0) {
           checkingButton.textContent = "Prüfen " + savedData.tries.toString();
@@ -436,7 +462,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
         }     
 
         if (savedData.solved) {
-          lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
+          lockQuiz(feedback, checkingButton, quizContainer);
         } else {
           checkingButton.addEventListener("click", function (e) {
             const currentAnswers = Array
@@ -462,7 +488,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
             if (isCorrect) {
               savedData.solved = true;
 
-              lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
+              lockQuiz(feedback, checkingButton, quizContainer);
             } else {
               feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
               feedback.style.color = "rgb(var(--lia-red))";
