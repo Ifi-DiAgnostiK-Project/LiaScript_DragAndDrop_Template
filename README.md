@@ -507,9 +507,6 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 @img: https://raw.githubusercontent.com/wenik35/LiaScript_ImageQuiz/main/img/mustang.jpg
 -->
 
-@dragdropsort(@uid,@img;Test111;Test11|Test2;Test22|Test3;Test33|Test4;Test44)
-@dragdropsort(@uid,Test1;@img|Test2;@img)
-
 This is a fork of Michael Markerts drag and drop quiz template which also allows has a mode for images.
 
 * See the Github version of this document [here...](https://github.com/wenik35/LiaScript_DragAndDrop_Template/)
@@ -519,7 +516,7 @@ To use these macros within your document, simply import it into LiaScript via:
 
 `import: https://raw.githubusercontent.com/wenik35/LiaScript_DragAndDrop_Template/refs/heads/main/README.md`
 
-## Drag and drop order quiz
+## Order quiz
 
 Try to order these items correctly by dragging and dropping them!
 
@@ -530,17 +527,22 @@ Try to order these items correctly by dragging and dropping them (hint: should b
 
 @dragdroporder(@uid,solution|is|this|the,this|is|the|solution)
 
-## Drag and drop multiple choice quiz
+### How to use
 
-Select the correct numbers from the pool (hint: odd numbers only)!
+The signature for the order quizzes is 
 
-@dragdropmultiple(@uid,1|3|5,2|4|6)
+`@dragdropmultiple(@uid,<initial>,<correct>)`,
 
-Select the correct numbers from the pool (hint: even numbers only)!
+, where
 
-@dragdropmultiple(@uid,2|4|6,1|3|5)
+* `@uid` generates an id for the quiz which is important for correct implementation,
+* `<initial>` is the initial order of elements (separated by `|`),
+* `<correct>` is the correct order of elements (separated by `|`).
 
-## Drag and drop image quiz
+Example: `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
+
+
+## Multiple choice quiz
 <!--
 @basepath: https://raw.githubusercontent.com/wenik35/LiaScript_ImageQuiz/main/img
 mustang: @basepath/mustang.jpg
@@ -549,32 +551,15 @@ mustang: @basepath/mustang.jpg
 @ford: @basepath/ford.jpg
 -->
 
-Select the correct images from the pool (hint: cars are cool, but planes are cooler)!
+Select the correct numbers from the pool (hint: odd numbers only)!
+
+@dragdropmultiple(@uid,1|3|5,2|4|6)
+
+You can also use images (hint: cars are cool, but planes are cooler)!
 
 @dragdropmultiple(@uid, @mustang|@f18, @chevrolet|@ford)
 
-## How to use it in your LiaScript
-
-### Order
-
-Just put 
-
-`@dragdroporder(@uid,4|2|3|1,1|2|3|4)`
-
-, or 
-
-`@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
-
-, where
-
-* `@uid` generates an id for the quiz which is important for correct implementation
-* parameter after `@uid` is the initial order of elements (separated by `|`), and the
-* second parameter is the correct order of elements (separated by `|`)
-
-I tried to avoid having `@uid`in the script by nesting in the header (`@dragdroporder: @dragdroporder_(@uid,@0)`) but then the second parameter is not written correctly which breaks the quiz.
-
-### Selection
-
+### How to use
 The signature for the selection quizzes is 
 
 `@dragdropmultiple(@uid,<correct>,<wrong>)`,
@@ -585,5 +570,41 @@ The signature for the selection quizzes is
 * `<correct>` are the correct answers (separated by `|`),
 * `<wrong>` are the correct answers (again separated by `|`).
 
-If you want to use the image selection quiz, you need to input the whole public URL to the images as parameters.
+Example: `@dragdropmultiple(@uid,1|3|5,2|4|6)`
+
+If you want to use the images, you need to input the whole public URLs to the images as parameters. If all parameters are viable URLs, the quiz automatically uses image mode.
+
 You might want to use makros in the case of many/long URLs. Just look at the source code of the example quiz to see how it works. (Note: This only works if the comment is directly under the headline, and the makros only exist for that page. If you want to reuse them somewhere else, put them into the header comment.)
+
+## Sorting Quiz
+<!--
+@basepath: https://raw.githubusercontent.com/wenik35/LiaScript_ImageQuiz/main/img
+mustang: @basepath/mustang.jpg
+@f18: @basepath/f18.jpg
+@chevrolet: @basepath/chevrolet.jpg
+@ford: @basepath/ford.jpg
+-->
+
+Try sorting these words to the correct field! Some fields may have multiple correct answers.
+
+@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object)
+
+You can also sort images!
+
+@dragdropsort(@uid,Plane;@mustang|Jet;@f18|Car;@chevrolet)
+
+### How to use
+
+The signature for the sorting quizzes is 
+
+`@dragdropmultiple(@uid,<answers>)`,
+
+, where
+
+* `@uid` works the same as in the order quiz, and
+* `<pairs>` are the pairs (again separated by `|`), consisting of the target and at least one affiliated answer (separated by `;`).
+
+Example: `@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object)`
+The target is always the first one in the pair-list.
+
+Using images for the answers works the same as in the multiple choice quiz, but targets can be a mix of images and text.
