@@ -5,6 +5,7 @@ version:  0.2
 language: de
 narrator: US English Female
 tags: Wissensspeicher
+title: Drag and Drop Quizzes
 
 script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Piktogramme/refs/heads/main/makros.md
