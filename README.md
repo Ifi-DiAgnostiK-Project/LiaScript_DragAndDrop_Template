@@ -308,7 +308,32 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
         element.style.cursor = "default";
         element.draggable = false;
         element.style.borderColor = "rgb(var(--lia-grey))";
+        element.style.outline = "";
       });
+  }
+
+  function colorItems(droppables, correctAnswers, poolContainer, mode) {
+    for (let i = 0; i < droppables.length; i++) {
+      const correctValues = mode === "image"
+        ? correctAnswers[i].map(v => encodeURI(v.replaceAll(" ", "")))
+        : correctAnswers[i];
+      droppables[i].querySelectorAll('.choice').forEach(item => {
+        const itemValue = (mode === "image") ? item.src : item.textContent.trim();
+        const color = correctValues.includes(itemValue) ? "rgb(var(--lia-success))" : "rgb(var(--lia-red))";
+        if (mode === "image") {
+          item.style.outline = `2px solid ${color}`;
+        } else {
+          item.style.borderColor = color;
+        }
+      });
+    }
+    poolContainer.querySelectorAll('.choice').forEach(item => {
+      if (mode === "image") {
+        item.style.outline = "2px solid rgb(var(--lia-red))";
+      } else {
+        item.style.borderColor = "rgb(var(--lia-red))";
+      }
+    });
   }
 
   function dropHandler(ev) {
@@ -386,6 +411,24 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
           }
         }
 
+        const preFillCount = parseInt('@2') || 0;
+        if (preFillCount > 0 && savedData.currentPool === null) {
+          savedData.currentAnswers = targets.map(() => []);
+          let filled = 0;
+          for (let i = 0; i < correctAnswers.length && filled < preFillCount; i++) {
+            if (correctAnswers[i].length > 0) {
+              const rawItem = correctAnswers[i][0];
+              const poolItem = mode === "image" ? encodeURI(rawItem.replaceAll(" ", "")) : rawItem;
+              const poolIndex = currentPool.indexOf(poolItem);
+              if (poolIndex !== -1) {
+                currentPool.splice(poolIndex, 1);
+                savedData.currentAnswers[i].push(poolItem);
+                filled++;
+              }
+            }
+          }
+        }
+
         for (let i = 0; i < currentPool.length; i++) {
           let container;
           if (mode === "image") {
@@ -460,6 +503,9 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
           checkingButton.textContent = "Prüfen " + savedData.tries.toString();
           feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
           feedback.style.color = "rgb(var(--lia-red))";
+          if (!savedData.solved) {
+            colorItems(droppables, correctAnswers, poolContainer, mode);
+          }
         }     
 
         if (savedData.solved) {
@@ -474,7 +520,12 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 
             savedData.currentPool = Array.from(poolContainer.querySelectorAll('.choice'))
                                         .map(choice => (mode === "image") ? choice.src : choice.textContent.trim());
-            
+
+            quizContainer.querySelectorAll('.choice').forEach(item => {
+              item.style.borderColor = "";
+              item.style.outline = "";
+            });
+
             let isCorrect = true;
             for (let i = 0; i < currentAnswers.length; i++) {
               if (! (currentAnswers[i].length === correctAnswers[i].length && currentAnswers[i].every(answer => correctAnswers[i].includes(answer)))) {
@@ -491,6 +542,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 
               lockQuiz(feedback, checkingButton, quizContainer);
             } else {
+              colorItems(droppables, correctAnswers, poolContainer, mode);
               feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
               feedback.style.color = "rgb(var(--lia-red))";
             }
@@ -595,18 +647,27 @@ You can also sort images!
 
 @dragdropsort(@uid,Plane;@mustang|Jet;@f18|Car;@chevrolet)
 
+This example uses the pre-fill feature to give students a head start (2 answers pre-placed):
+
+@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object,2)
+
 ### How to use
 
 The signature for the sorting quizzes is 
 
-`@dragdropmultiple(@uid,<answers>)`,
+`@dragdropsort(@uid,<answers>,<prefill>)`,
 
 , where
 
-* `@uid` works the same as in the order quiz, and
-* `<pairs>` are the pairs (again separated by `|`), consisting of the target and at least one affiliated answer (separated by `;`).
+* `@uid` works the same as in the order quiz,
+* `<pairs>` are the pairs (again separated by `|`), consisting of the target and at least one affiliated answer (separated by `;`), and
+* `<prefill>` (optional) is a positive integer — if provided, that many answers are pre-placed into their correct targets to give students a head start.
 
 Example: `@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object)`
 The target is always the first one in the pair-list.
+
+Example with pre-fill: `@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object,2)` pre-places the first correct answer for each of the first 2 targets.
+
+After a wrong check, correctly placed items are highlighted in green and incorrectly placed (or unplaced) items are highlighted in red.
 
 Using images for the answers works the same as in the multiple choice quiz, but targets can be a mix of images and text.
