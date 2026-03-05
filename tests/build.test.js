@@ -105,6 +105,25 @@ describe("build script", () => {
     expect(macro).not.toContain("onMove");
   });
 
+  test("dragdroporder macro supports image mode (URL detection, img rendering, src extraction)", () => {
+    const startIdx = readmeContent.indexOf("@dragdroporder\n");
+    const endIdx = readmeContent.indexOf("@end", startIdx);
+    const macro = readmeContent.slice(startIdx, endIdx);
+    // Mode detection: all items must be valid URLs to switch to image mode
+    expect(macro).toContain('isValidHttpUrl(item)');
+    expect(macro).toContain('"image"');
+    // URL encoding for image mode
+    expect(macro).toContain('encodeURI(');
+    // Image rendering: img element created via DOM for image mode (safe, no innerHTML)
+    expect(macro).toContain("document.createElement(\"img\")");
+    expect(macro).toContain('element.src = item');
+    expect(macro).toContain('element.alt = ""');
+    // Value extraction: use .src for images, .textContent for text
+    expect(macro).toContain('choice.src');
+    expect(macro).toContain('c.src');
+  });
+
+
   test("dragdropmultiple macro supports maxTrials parameter", () => {
     const startIdx = readmeContent.indexOf("@dragdropmultiple\n");
     const endIdx = readmeContent.indexOf("@end", startIdx);

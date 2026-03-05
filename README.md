@@ -182,14 +182,22 @@ function isSortCorrect(currentAnswers, correctAnswers) {
           deprecationWarning.style.display = 'block';
         }
 
-        const correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
+        let correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
         const maxTrials = isLegacyApi ? parseInt('@4') || 0 : parseInt('@2') || 0;
         const randomize = isLegacyApi ? '@3' === 'true' : true;
         const glueNeighbors = isLegacyApi ? true : ('@3' !== 'false'); // pass 'false' to disable
 
+        const mode = correctAnswers.every(item => isValidHttpUrl(item)) ? "image" : "text";
+        if (mode === "image") {
+          correctAnswers = correctAnswers.map(url => encodeURI(url.replaceAll(" ", "")));
+        }
+
         let currentAnswer = savedData.currentAnswer;
         if (currentAnswer === null) {
           currentAnswer = '@1'.split('|');
+          if (mode === "image") {
+            currentAnswer = currentAnswer.map(url => encodeURI(url.replaceAll(" ", "")));
+          }
           if (randomize) {
             for (let i = currentAnswer.length - 1; i > 0; i--) {
               const j = Math.floor(Math.random() * (i + 1));
@@ -200,9 +208,23 @@ function isSortCorrect(currentAnswers, correctAnswers) {
           }
         }
 
-        choicesContainer.innerHTML = currentAnswer.map(item => 
-          `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
-        ).join('');
+        choicesContainer.innerHTML = '';
+        currentAnswer.forEach(item => {
+          let element;
+          if (mode === "image") {
+            element = document.createElement("img");
+            element.src = item;
+            element.alt = "";
+            element.classList.add("choice");
+            element.style.cssText = "cursor: move; user-select: none; max-width: 100%; max-height: 10rem; object-fit: contain; display: block;";
+          } else {
+            element = document.createElement("div");
+            element.innerHTML = item;
+            element.classList.add("choice", "lia-code", "lia-code--inline");
+            element.style.cssText = "padding: 10px; border-radius: 4px; cursor: move; user-select: none;";
+          }
+          choicesContainer.appendChild(element);
+        });
 
         if (savedData.solved) {
           lockQuiz(feedback, checkingButton, choicesContainer, quizContainer);
@@ -218,7 +240,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
           function updateHints() {
             const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
-            const currentOrder = choices.map(choice => choice.textContent.trim());
+            const currentOrder = choices.map(choice => mode === "image" ? choice.src : choice.textContent.trim());
             const hints = getOrderHints(currentOrder, correctAnswers);
             choices.forEach((choice, i) => {
               const shadows = [];
@@ -241,7 +263,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
               const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
               const draggedEl = evt.item;
               const draggedIdx = choices.indexOf(draggedEl);
-              const currentOrder = choices.map(c => c.textContent.trim());
+              const currentOrder = choices.map(c => mode === "image" ? c.src : c.textContent.trim());
               const hints = getOrderHints(currentOrder, correctAnswers);
 
               // Collect elements above the dragged element that are glued to it.
@@ -312,7 +334,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
           
           checkingButton.addEventListener("click", function (e) {
             const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
-            const currentOrder = choices.map(choice => choice.textContent.trim());
+            const currentOrder = choices.map(choice => mode === "image" ? choice.src : choice.textContent.trim());
 
             savedData.currentAnswer = currentOrder;
             
@@ -1028,6 +1050,18 @@ This example disables the neighbor-gluing feature (correctly ordered pairs will 
 
 @dragdroporder(@uid,this|is|the|solution,3,false)
 
+You can also use images — if all items are valid URLs the quiz automatically switches to image mode:
+
+<!--
+@basepath: https://raw.githubusercontent.com/wenik35/LiaScript_ImageQuiz/main/img
+@mustang: @basepath/mustang.jpg
+@f18: @basepath/f18.jpg
+@chevrolet: @basepath/chevrolet.jpg
+@ford: @basepath/ford.jpg
+-->
+
+@dragdroporder(@uid,@mustang|@f18|@chevrolet|@ford)
+
 ### How to use
 
 The signature for the order quizzes is
@@ -1048,6 +1082,10 @@ Example with 3 max trials: `@dragdroporder(@uid,this|is|the|solution,3)`
 Example with neighbor-gluing disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
 
 Example with 3 max trials and neighbor-gluing disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
+
+If you want to use images, provide the full public URLs of the images as items. If every item is a valid URL, the quiz automatically switches to image mode. You may use LiaScript macros to shorten long URLs (see example above).
+
+Example with images: `@dragdroporder(@uid,https://example.com/img1.jpg|https://example.com/img2.jpg|https://example.com/img3.jpg)`
 
 #### Deprecated API
 

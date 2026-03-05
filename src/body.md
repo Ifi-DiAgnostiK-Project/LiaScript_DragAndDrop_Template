@@ -31,6 +31,18 @@ This example disables the neighbor-gluing feature (correctly ordered pairs will 
 
 @dragdroporder(@uid,this|is|the|solution,3,false)
 
+You can also use images — if all items are valid URLs the quiz automatically switches to image mode:
+
+<!--
+@basepath: https://raw.githubusercontent.com/wenik35/LiaScript_ImageQuiz/main/img
+@mustang: @basepath/mustang.jpg
+@f18: @basepath/f18.jpg
+@chevrolet: @basepath/chevrolet.jpg
+@ford: @basepath/ford.jpg
+-->
+
+@dragdroporder(@uid,@mustang|@f18|@chevrolet|@ford)
+
 ### How to use
 
 The signature for the order quizzes is
@@ -51,6 +63,10 @@ Example with 3 max trials: `@dragdroporder(@uid,this|is|the|solution,3)`
 Example with neighbor-gluing disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
 
 Example with 3 max trials and neighbor-gluing disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
+
+If you want to use images, provide the full public URLs of the images as items. If every item is a valid URL, the quiz automatically switches to image mode. You may use LiaScript macros to shorten long URLs (see example above).
+
+Example with images: `@dragdroporder(@uid,https://example.com/img1.jpg|https://example.com/img2.jpg|https://example.com/img3.jpg)`
 
 #### Deprecated API
 
