@@ -17,6 +17,7 @@ import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Holzarten/refs/
 
 @dragdroporder
 <div style="width: 100%; max-width: 600px; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
+  <span class="deprecation-warning" style="display: none; color: rgb(var(--lia-red)); font-weight: bold; margin-bottom: 10px;"></span>
   <div class="choices-container" style="display: flex; flex-direction: column; gap: 10px;">
   </div>
 
@@ -143,6 +144,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
         const choicesContainer = quizContainer.querySelector('.choices-container');
         const feedback = quizContainer.querySelector('.feedback');
         const checkingButton = quizContainer.querySelector('.lia-quiz__check');
+        const deprecationWarning = quizContainer.querySelector('.deprecation-warning');
 
         const dataKey = `quiz-${quizId}-data`;
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
@@ -154,6 +156,8 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
         if (isLegacyApi) {
           console.warn('[dragdroporder] Deprecated API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>) will be removed in a future version. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>).');
+          deprecationWarning.textContent = '⚠ Deprecated API: Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>).';
+          deprecationWarning.style.display = 'block';
         }
 
         const correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
@@ -861,6 +865,10 @@ Try to order these items correctly by dragging and dropping them!
 Try to order these items correctly by dragging and dropping them (hint: should be a sentence)!
 
 @dragdroporder(@uid,this|is|the|solution)
+
+This example allows only 3 attempts before locking the quiz as failed:
+
+@dragdroporder(@uid,this|is|the|solution,3)
 
 ### How to use
 

@@ -23,6 +23,10 @@ Try to order these items correctly by dragging and dropping them (hint: should b
 
 @dragdroporder(@uid,this|is|the|solution)
 
+This example allows only 3 attempts before locking the quiz as failed:
+
+@dragdroporder(@uid,this|is|the|solution,3)
+
 ### How to use
 
 The signature for the order quizzes is

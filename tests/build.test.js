@@ -73,7 +73,10 @@ describe("build script", () => {
     const macro = readmeContent.slice(startIdx, endIdx);
     // New API detection
     expect(macro).toContain("'@2'.includes('|')");
-    // Deprecation warning for legacy API
+    // In-page red deprecation warning element
+    expect(macro).toContain('class="deprecation-warning"');
+    expect(macro).toContain("deprecationWarning.style.display = 'block'");
+    // Console deprecation warning for legacy API
     expect(macro).toContain("console.warn(");
     expect(macro).toContain("Deprecated API");
     // Legacy API still reads @3 for randomize and @4 for maxTrials
