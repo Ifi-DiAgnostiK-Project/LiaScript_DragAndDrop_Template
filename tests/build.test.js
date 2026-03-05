@@ -51,6 +51,7 @@ describe("build script", () => {
   });
 
   test("README.md inlines the quiz logic functions into macros", () => {
+    expect(readmeContent).toContain("function getOrderHints(");
     expect(readmeContent).toContain("function isOrderCorrect(");
     expect(readmeContent).toContain("function isMultipleChoiceCorrect(");
     expect(readmeContent).toContain("function isSortCorrect(");
@@ -87,6 +88,10 @@ describe("build script", () => {
     // Shared behaviour
     expect(macro).toContain("lockQuizFailed(");
     expect(macro).toContain("maxTrials > 0 && savedData.tries >= maxTrials");
+    // Order hints wiring
+    expect(macro).toContain("function updateHints(");
+    expect(macro).toContain("onEnd: updateHints");
+    expect(macro).toContain("getOrderHints(");
   });
 
   test("dragdropmultiple macro supports maxTrials parameter", () => {

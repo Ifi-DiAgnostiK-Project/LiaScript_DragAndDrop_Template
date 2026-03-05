@@ -53,6 +53,25 @@ function isValidHttpUrl(string) {
 }
 
 /**
+ * Determines hint indicators for the drag-order quiz.
+ * Returns one entry per element indicating whether its top and/or bottom edge
+ * should be highlighted: an edge is highlighted when the neighbour on that
+ * side is the element that immediately follows/precedes it in the correct
+ * answer, i.e. the two are already in the right consecutive order.
+ * @param {string[]} currentOrder - Current order of items.
+ * @param {string[]} correctAnswers - Expected order of items.
+ * @returns {{top: boolean, bottom: boolean}[]}
+ */
+function getOrderHints(currentOrder, correctAnswers) {
+  const n = currentOrder.length;
+  const correctIdx = currentOrder.map(item => correctAnswers.indexOf(item));
+  return currentOrder.map((_, i) => ({
+    top:    i > 0     && correctIdx[i - 1] >= 0 && correctIdx[i] >= 0     && correctIdx[i]     - correctIdx[i - 1] === 1,
+    bottom: i < n - 1 && correctIdx[i] >= 0     && correctIdx[i + 1] >= 0 && correctIdx[i + 1] - correctIdx[i]     === 1,
+  }));
+}
+
+/**
  * Checks whether the given order exactly matches the correct order.
  * @param {string[]} currentOrder - Current order of items.
  * @param {string[]} correctAnswers - Expected order of items.
@@ -119,6 +138,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
     choicesContainer.querySelectorAll("*").forEach((element) => {
       element.style.cursor = "default";
       element.style.borderColor = "rgb(var(--lia-grey))";
+      element.style.boxShadow = "";
     });
   }
 
@@ -134,6 +154,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
     choicesContainer.querySelectorAll("*").forEach((element) => {
       element.style.cursor = "default";
       element.style.borderColor = "rgb(var(--lia-grey))";
+      element.style.boxShadow = "";
     });
   }
 
@@ -195,7 +216,24 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
           const sortable = new Sortable(choicesContainer, {
             animation: 150,
+            onEnd: updateHints,
           });
+
+          function updateHints() {
+            const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
+            const currentOrder = choices.map(choice => choice.textContent.trim());
+            const hints = getOrderHints(currentOrder, correctAnswers);
+            choices.forEach((choice, i) => {
+              const shadows = [];
+              // 3px shadow bleeds out from the element edge by exactly 3px,
+              // painting a thin green line at the top (-3px) or bottom (+3px).
+              if (hints[i].top)    shadows.push('0 -3px 0 0 rgb(var(--lia-success))');
+              if (hints[i].bottom) shadows.push('0  3px 0 0 rgb(var(--lia-success))');
+              choice.style.boxShadow = shadows.join(', ');
+            });
+          }
+
+          updateHints();
           
           checkingButton.addEventListener("click", function (e) {
             const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
@@ -273,6 +311,25 @@ function isValidHttpUrl(string) {
   }
 
   return url.protocol === "http:" || url.protocol === "https:";
+}
+
+/**
+ * Determines hint indicators for the drag-order quiz.
+ * Returns one entry per element indicating whether its top and/or bottom edge
+ * should be highlighted: an edge is highlighted when the neighbour on that
+ * side is the element that immediately follows/precedes it in the correct
+ * answer, i.e. the two are already in the right consecutive order.
+ * @param {string[]} currentOrder - Current order of items.
+ * @param {string[]} correctAnswers - Expected order of items.
+ * @returns {{top: boolean, bottom: boolean}[]}
+ */
+function getOrderHints(currentOrder, correctAnswers) {
+  const n = currentOrder.length;
+  const correctIdx = currentOrder.map(item => correctAnswers.indexOf(item));
+  return currentOrder.map((_, i) => ({
+    top:    i > 0     && correctIdx[i - 1] >= 0 && correctIdx[i] >= 0     && correctIdx[i]     - correctIdx[i - 1] === 1,
+    bottom: i < n - 1 && correctIdx[i] >= 0     && correctIdx[i + 1] >= 0 && correctIdx[i + 1] - correctIdx[i]     === 1,
+  }));
 }
 
 /**
@@ -516,6 +573,25 @@ function isValidHttpUrl(string) {
   }
 
   return url.protocol === "http:" || url.protocol === "https:";
+}
+
+/**
+ * Determines hint indicators for the drag-order quiz.
+ * Returns one entry per element indicating whether its top and/or bottom edge
+ * should be highlighted: an edge is highlighted when the neighbour on that
+ * side is the element that immediately follows/precedes it in the correct
+ * answer, i.e. the two are already in the right consecutive order.
+ * @param {string[]} currentOrder - Current order of items.
+ * @param {string[]} correctAnswers - Expected order of items.
+ * @returns {{top: boolean, bottom: boolean}[]}
+ */
+function getOrderHints(currentOrder, correctAnswers) {
+  const n = currentOrder.length;
+  const correctIdx = currentOrder.map(item => correctAnswers.indexOf(item));
+  return currentOrder.map((_, i) => ({
+    top:    i > 0     && correctIdx[i - 1] >= 0 && correctIdx[i] >= 0     && correctIdx[i]     - correctIdx[i - 1] === 1,
+    bottom: i < n - 1 && correctIdx[i] >= 0     && correctIdx[i + 1] >= 0 && correctIdx[i + 1] - correctIdx[i]     === 1,
+  }));
 }
 
 /**

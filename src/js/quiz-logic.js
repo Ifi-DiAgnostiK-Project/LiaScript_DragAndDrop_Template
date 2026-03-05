@@ -22,6 +22,25 @@ function isValidHttpUrl(string) {
 }
 
 /**
+ * Determines hint indicators for the drag-order quiz.
+ * Returns one entry per element indicating whether its top and/or bottom edge
+ * should be highlighted: an edge is highlighted when the neighbour on that
+ * side is the element that immediately follows/precedes it in the correct
+ * answer, i.e. the two are already in the right consecutive order.
+ * @param {string[]} currentOrder - Current order of items.
+ * @param {string[]} correctAnswers - Expected order of items.
+ * @returns {{top: boolean, bottom: boolean}[]}
+ */
+function getOrderHints(currentOrder, correctAnswers) {
+  const n = currentOrder.length;
+  const correctIdx = currentOrder.map(item => correctAnswers.indexOf(item));
+  return currentOrder.map((_, i) => ({
+    top:    i > 0     && correctIdx[i - 1] >= 0 && correctIdx[i] >= 0     && correctIdx[i]     - correctIdx[i - 1] === 1,
+    bottom: i < n - 1 && correctIdx[i] >= 0     && correctIdx[i + 1] >= 0 && correctIdx[i + 1] - correctIdx[i]     === 1,
+  }));
+}
+
+/**
  * Checks whether the given order exactly matches the correct order.
  * @param {string[]} currentOrder - Current order of items.
  * @param {string[]} correctAnswers - Expected order of items.
@@ -72,6 +91,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 if (typeof module !== "undefined") {
   module.exports = {
     isValidHttpUrl,
+    getOrderHints,
     isOrderCorrect,
     isMultipleChoiceCorrect,
     isSortCorrect,
