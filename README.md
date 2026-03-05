@@ -322,8 +322,6 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
                 glueInfo = null;
               }
-
-              updateHints();
             },
           });
 

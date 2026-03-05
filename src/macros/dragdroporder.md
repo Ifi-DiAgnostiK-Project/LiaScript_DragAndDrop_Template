@@ -216,8 +216,6 @@
 
                 glueInfo = null;
               }
-
-              updateHints();
             },
           });
 
