@@ -20,6 +20,7 @@
 
   const quizData = {
     solved: false,
+    failed: false,
     tries: 0,
     currentPool: null,
     currentAnswers: []
@@ -28,6 +29,22 @@
   function lockQuiz(feedback, checkingButton, quizContainer){
     feedback.textContent = "Herzlichen Glückwunsch, das war die richtige Antwort";
     feedback.style.color = "rgb(var(--lia-success))";
+
+    checkingButton.setAttribute("disabled", "");
+
+    quizContainer
+      .querySelectorAll(".choice")
+      .forEach((element) => {
+        element.style.cursor = "default";
+        element.draggable = false;
+        element.style.borderColor = "rgb(var(--lia-grey))";
+        element.style.outline = "";
+      });
+  }
+
+  function lockQuizFailed(feedback, checkingButton, quizContainer){
+    feedback.textContent = "Leider falsch. Die maximale Anzahl an Versuchen wurde erreicht.";
+    feedback.style.color = "rgb(var(--lia-red))";
 
     checkingButton.setAttribute("disabled", "");
 
@@ -95,6 +112,8 @@
 
         const dataKey = `quiz-${quizId}-data`;
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
+
+        const maxTrials = parseInt('@3') || 0;
 
         let targets = [];
         let pool = [];
@@ -216,18 +235,20 @@
         }
 
 
-        if (savedData.tries > 0) {
-          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
-          feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
-          feedback.style.color = "rgb(var(--lia-red))";
-          if (!savedData.solved) {
-            colorItems(droppables, correctAnswers, poolContainer, mode);
-          }
-        }     
-
         if (savedData.solved) {
           lockQuiz(feedback, checkingButton, quizContainer);
+        } else if (savedData.failed) {
+          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          colorItems(droppables, correctAnswers, poolContainer, mode);
+          lockQuizFailed(feedback, checkingButton, quizContainer);
         } else {
+          if (savedData.tries > 0) {
+            checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+            feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+            feedback.style.color = "rgb(var(--lia-red))";
+            colorItems(droppables, correctAnswers, poolContainer, mode);
+          }
+
           checkingButton.addEventListener("click", function (e) {
             const currentAnswers = Array
                                     .from(targetContainer.querySelectorAll('.droppable'))
@@ -252,6 +273,10 @@
               savedData.solved = true;
 
               lockQuiz(feedback, checkingButton, quizContainer);
+            } else if (maxTrials > 0 && savedData.tries >= maxTrials) {
+              savedData.failed = true;
+              colorItems(droppables, correctAnswers, poolContainer, mode);
+              lockQuizFailed(feedback, checkingButton, quizContainer);
             } else {
               colorItems(droppables, correctAnswers, poolContainer, mode);
               feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";

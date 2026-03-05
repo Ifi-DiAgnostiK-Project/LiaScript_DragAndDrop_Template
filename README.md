@@ -101,6 +101,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
   const quizData = {
     solved: false,
+    failed: false,
     tries: 0,
     currentAnswer: null
   }
@@ -108,6 +109,21 @@ function isSortCorrect(currentAnswers, correctAnswers) {
   function lockQuiz(feedback, checkingButton, choicesContainer, quizContainer){
     feedback.textContent = "Herzlichen Glückwunsch, das war die richtige Antwort";
     feedback.style.color = "rgb(var(--lia-success))";
+
+    checkingButton.setAttribute("disabled", "");
+
+    choicesContainer.style.borderColor = "rgb(var(--lia-grey))";
+    quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+    choicesContainer.querySelectorAll("*").forEach((element) => {
+      element.style.cursor = "default";
+      element.style.borderColor = "rgb(var(--lia-grey))";
+    });
+  }
+
+  function lockQuizFailed(feedback, checkingButton, choicesContainer, quizContainer){
+    feedback.textContent = "Leider falsch. Die maximale Anzahl an Versuchen wurde erreicht.";
+    feedback.style.color = "rgb(var(--lia-red))";
 
     checkingButton.setAttribute("disabled", "");
 
@@ -132,21 +148,38 @@ function isSortCorrect(currentAnswers, correctAnswers) {
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
 
         const correctAnswers = '@2'.split('|');
-        const currentAnswer = savedData.currentAnswer ?? '@1'.split('|');
+        const randomize = '@3' === 'true';
+        const maxTrials = parseInt('@4') || 0;
+
+        let currentAnswer = savedData.currentAnswer;
+        if (currentAnswer === null) {
+          currentAnswer = '@1'.split('|');
+          if (randomize) {
+            for (let i = currentAnswer.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1));
+              const temp = currentAnswer[i];
+              currentAnswer[i] = currentAnswer[j];
+              currentAnswer[j] = temp;
+            }
+          }
+        }
 
         choicesContainer.innerHTML = currentAnswer.map(item => 
           `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
         ).join('');
 
-        if (savedData.tries > 0) {
-          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
-          feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
-          feedback.style.color = "rgb(var(--lia-red))";
-        }     
-
         if (savedData.solved) {
           lockQuiz(feedback, checkingButton, choicesContainer, quizContainer);
+        } else if (savedData.failed) {
+          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          lockQuizFailed(feedback, checkingButton, choicesContainer, quizContainer);
         } else {
+          if (savedData.tries > 0) {
+            checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+            feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+            feedback.style.color = "rgb(var(--lia-red))";
+          }
+
           const sortable = new Sortable(choicesContainer, {
             animation: 150,
           });
@@ -165,6 +198,9 @@ function isSortCorrect(currentAnswers, correctAnswers) {
             if (isCorrect) {
               savedData.solved = true;
               lockQuiz(feedback, checkingButton, choicesContainer, quizContainer);
+            } else if (maxTrials > 0 && savedData.tries >= maxTrials) {
+              savedData.failed = true;
+              lockQuizFailed(feedback, checkingButton, choicesContainer, quizContainer);
             } else {
               feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
               feedback.style.color = "rgb(var(--lia-red))";
@@ -276,6 +312,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
   const quizData = {
     solved: false,
+    failed: false,
     tries: 0,
     currentPool: null,
     currentAnswer: []
@@ -284,6 +321,20 @@ function isSortCorrect(currentAnswers, correctAnswers) {
   function lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer){
     feedback.textContent = "Herzlichen Glückwunsch, das war die richtige Antwort";
     feedback.style.color = "rgb(var(--lia-success))";
+
+    checkingButton.setAttribute("disabled", "");
+
+    poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+    targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+    quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+    poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+    targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+  }
+
+  function lockQuizFailed(feedback, checkingButton, poolContainer, targetContainer, quizContainer){
+    feedback.textContent = "Leider falsch. Die maximale Anzahl an Versuchen wurde erreicht.";
+    feedback.style.color = "rgb(var(--lia-red))";
 
     checkingButton.setAttribute("disabled", "");
 
@@ -307,6 +358,8 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
         const dataKey = `quiz-${quizId}-data`;
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
+
+        const maxTrials = parseInt('@3') || 0;
 
         let correctAnswers = '@1'.split('|');
         const wrongAnswers = '@2'.split('|');
@@ -337,15 +390,18 @@ function isSortCorrect(currentAnswers, correctAnswers) {
         poolContainer.innerHTML = currentPool.map(item => formatString.replace("placeholder", item)).join('');
         targetContainer.innerHTML = savedData.currentAnswer.map(item => formatString.replace("placeholder", item)).join('');
 
-        if (savedData.tries > 0) {
-          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
-          feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
-          feedback.style.color = "rgb(var(--lia-red))";
-        }     
-
         if (savedData.solved) {
           lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
+        } else if (savedData.failed) {
+          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          lockQuizFailed(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
         } else {
+          if (savedData.tries > 0) {
+            checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+            feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+            feedback.style.color = "rgb(var(--lia-red))";
+          }
+
           const poolSortable = new Sortable(poolContainer, {
             group: {
               name: quizId,
@@ -383,6 +439,9 @@ function isSortCorrect(currentAnswers, correctAnswers) {
               targetSortable.option("group", groupSetting);
 
               lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
+            } else if (maxTrials > 0 && savedData.tries >= maxTrials) {
+              savedData.failed = true;
+              lockQuizFailed(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
             } else {
               feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
               feedback.style.color = "rgb(var(--lia-red))";
@@ -496,6 +555,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
   const quizData = {
     solved: false,
+    failed: false,
     tries: 0,
     currentPool: null,
     currentAnswers: []
@@ -504,6 +564,22 @@ function isSortCorrect(currentAnswers, correctAnswers) {
   function lockQuiz(feedback, checkingButton, quizContainer){
     feedback.textContent = "Herzlichen Glückwunsch, das war die richtige Antwort";
     feedback.style.color = "rgb(var(--lia-success))";
+
+    checkingButton.setAttribute("disabled", "");
+
+    quizContainer
+      .querySelectorAll(".choice")
+      .forEach((element) => {
+        element.style.cursor = "default";
+        element.draggable = false;
+        element.style.borderColor = "rgb(var(--lia-grey))";
+        element.style.outline = "";
+      });
+  }
+
+  function lockQuizFailed(feedback, checkingButton, quizContainer){
+    feedback.textContent = "Leider falsch. Die maximale Anzahl an Versuchen wurde erreicht.";
+    feedback.style.color = "rgb(var(--lia-red))";
 
     checkingButton.setAttribute("disabled", "");
 
@@ -571,6 +647,8 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
         const dataKey = `quiz-${quizId}-data`;
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
+
+        const maxTrials = parseInt('@3') || 0;
 
         let targets = [];
         let pool = [];
@@ -692,18 +770,20 @@ function isSortCorrect(currentAnswers, correctAnswers) {
         }
 
 
-        if (savedData.tries > 0) {
-          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
-          feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
-          feedback.style.color = "rgb(var(--lia-red))";
-          if (!savedData.solved) {
-            colorItems(droppables, correctAnswers, poolContainer, mode);
-          }
-        }     
-
         if (savedData.solved) {
           lockQuiz(feedback, checkingButton, quizContainer);
+        } else if (savedData.failed) {
+          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          colorItems(droppables, correctAnswers, poolContainer, mode);
+          lockQuizFailed(feedback, checkingButton, quizContainer);
         } else {
+          if (savedData.tries > 0) {
+            checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+            feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+            feedback.style.color = "rgb(var(--lia-red))";
+            colorItems(droppables, correctAnswers, poolContainer, mode);
+          }
+
           checkingButton.addEventListener("click", function (e) {
             const currentAnswers = Array
                                     .from(targetContainer.querySelectorAll('.droppable'))
@@ -728,6 +808,10 @@ function isSortCorrect(currentAnswers, correctAnswers) {
               savedData.solved = true;
 
               lockQuiz(feedback, checkingButton, quizContainer);
+            } else if (maxTrials > 0 && savedData.tries >= maxTrials) {
+              savedData.failed = true;
+              colorItems(droppables, correctAnswers, poolContainer, mode);
+              lockQuizFailed(feedback, checkingButton, quizContainer);
             } else {
               colorItems(droppables, correctAnswers, poolContainer, mode);
               feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
@@ -774,15 +858,19 @@ Try to order these items correctly by dragging and dropping them (hint: should b
 
 The signature for the order quizzes is 
 
-`@dragdroporder(@uid,<initial>,<correct>)`,
+`@dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)`,
 
 , where
 
 * `@uid` generates an id for the quiz which is important for correct implementation,
 * `<initial>` is the initial order of elements (separated by `|`),
-* `<correct>` is the correct order of elements (separated by `|`).
+* `<correct>` is the correct order of elements (separated by `|`),
+* `<randomize>` (optional) set to `true` to shuffle the items randomly on first load instead of using the fixed initial order,
+* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts.
 
 Example: `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
+
+Example with randomize and 3 max trials: `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution,true,3)`
 
 
 ## Multiple choice quiz
@@ -805,15 +893,20 @@ You can also use images (hint: cars are cool, but planes are cooler)!
 ### How to use
 The signature for the selection quizzes is 
 
-`@dragdropmultiple(@uid,<correct>,<wrong>)`,
+`@dragdropmultiple(@uid,<correct>,<wrong>,<maxTrials?>)`,
 
 , where
 
 * `@uid` works the same as in the order quiz,
 * `<correct>` are the correct answers (separated by `|`),
-* `<wrong>` are the correct answers (again separated by `|`).
+* `<wrong>` are the wrong answers (again separated by `|`),
+* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts.
+
+Note: the pool of answers is always shuffled randomly on first load.
 
 Example: `@dragdropmultiple(@uid,1|3|5,2|4|6)`
+
+Example with 3 max trials: `@dragdropmultiple(@uid,1|3|5,2|4|6,3)`
 
 If you want to use the images, you need to input the whole public URLs to the images as parameters. If all parameters are viable URLs, the quiz automatically uses image mode.
 
@@ -844,18 +937,23 @@ This example uses the pre-fill feature to give students a head start (2 answers 
 
 The signature for the sorting quizzes is 
 
-`@dragdropsort(@uid,<answers>,<prefill>)`,
+`@dragdropsort(@uid,<answers>,<prefill?>,<maxTrials?>)`,
 
 , where
 
 * `@uid` works the same as in the order quiz,
 * `<pairs>` are the pairs (again separated by `|`), consisting of the target and at least one affiliated answer (separated by `;`), and
-* `<prefill>` (optional) is a positive integer — if provided, that many answers are pre-placed into their correct targets to give students a head start.
+* `<prefill>` (optional) is a positive integer — if provided, that many answers are pre-placed into their correct targets to give students a head start,
+* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts.
+
+Note: the pool of answers is always shuffled randomly on first load.
 
 Example: `@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object)`
 The target is always the first one in the pair-list.
 
 Example with pre-fill: `@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object,2)` pre-places the first correct answer for each of the first 2 targets.
+
+Example with pre-fill and 3 max trials: `@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object,2,3)`
 
 After a wrong check, correctly placed items are highlighted in green and incorrectly placed (or unplaced) items are highlighted in red.
 

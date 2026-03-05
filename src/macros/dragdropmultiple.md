@@ -25,6 +25,7 @@
 
   const quizData = {
     solved: false,
+    failed: false,
     tries: 0,
     currentPool: null,
     currentAnswer: []
@@ -33,6 +34,20 @@
   function lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer){
     feedback.textContent = "Herzlichen Glückwunsch, das war die richtige Antwort";
     feedback.style.color = "rgb(var(--lia-success))";
+
+    checkingButton.setAttribute("disabled", "");
+
+    poolContainer.style.borderColor = "rgb(var(--lia-grey))";
+    targetContainer.style.borderColor = "rgb(var(--lia-grey))";
+    quizContainer.style.borderColor = "rgb(var(--lia-grey))";
+
+    poolContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+    targetContainer.querySelectorAll("*").forEach((element) => element.style.cursor = "default");
+  }
+
+  function lockQuizFailed(feedback, checkingButton, poolContainer, targetContainer, quizContainer){
+    feedback.textContent = "Leider falsch. Die maximale Anzahl an Versuchen wurde erreicht.";
+    feedback.style.color = "rgb(var(--lia-red))";
 
     checkingButton.setAttribute("disabled", "");
 
@@ -56,6 +71,8 @@
 
         const dataKey = `quiz-${quizId}-data`;
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
+
+        const maxTrials = parseInt('@3') || 0;
 
         let correctAnswers = '@1'.split('|');
         const wrongAnswers = '@2'.split('|');
@@ -86,15 +103,18 @@
         poolContainer.innerHTML = currentPool.map(item => formatString.replace("placeholder", item)).join('');
         targetContainer.innerHTML = savedData.currentAnswer.map(item => formatString.replace("placeholder", item)).join('');
 
-        if (savedData.tries > 0) {
-          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
-          feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
-          feedback.style.color = "rgb(var(--lia-red))";
-        }     
-
         if (savedData.solved) {
           lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
+        } else if (savedData.failed) {
+          checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          lockQuizFailed(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
         } else {
+          if (savedData.tries > 0) {
+            checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+            feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
+            feedback.style.color = "rgb(var(--lia-red))";
+          }
+
           const poolSortable = new Sortable(poolContainer, {
             group: {
               name: quizId,
@@ -132,6 +152,9 @@
               targetSortable.option("group", groupSetting);
 
               lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
+            } else if (maxTrials > 0 && savedData.tries >= maxTrials) {
+              savedData.failed = true;
+              lockQuizFailed(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
             } else {
               feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
               feedback.style.color = "rgb(var(--lia-red))";

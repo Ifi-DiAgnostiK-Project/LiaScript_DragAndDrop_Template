@@ -28,15 +28,19 @@ Try to order these items correctly by dragging and dropping them (hint: should b
 
 The signature for the order quizzes is 
 
-`@dragdroporder(@uid,<initial>,<correct>)`,
+`@dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)`,
 
 , where
 
 * `@uid` generates an id for the quiz which is important for correct implementation,
 * `<initial>` is the initial order of elements (separated by `|`),
-* `<correct>` is the correct order of elements (separated by `|`).
+* `<correct>` is the correct order of elements (separated by `|`),
+* `<randomize>` (optional) set to `true` to shuffle the items randomly on first load instead of using the fixed initial order,
+* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts.
 
 Example: `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
+
+Example with randomize and 3 max trials: `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution,true,3)`
 
 
 ## Multiple choice quiz
@@ -59,15 +63,20 @@ You can also use images (hint: cars are cool, but planes are cooler)!
 ### How to use
 The signature for the selection quizzes is 
 
-`@dragdropmultiple(@uid,<correct>,<wrong>)`,
+`@dragdropmultiple(@uid,<correct>,<wrong>,<maxTrials?>)`,
 
 , where
 
 * `@uid` works the same as in the order quiz,
 * `<correct>` are the correct answers (separated by `|`),
-* `<wrong>` are the correct answers (again separated by `|`).
+* `<wrong>` are the wrong answers (again separated by `|`),
+* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts.
+
+Note: the pool of answers is always shuffled randomly on first load.
 
 Example: `@dragdropmultiple(@uid,1|3|5,2|4|6)`
+
+Example with 3 max trials: `@dragdropmultiple(@uid,1|3|5,2|4|6,3)`
 
 If you want to use the images, you need to input the whole public URLs to the images as parameters. If all parameters are viable URLs, the quiz automatically uses image mode.
 
@@ -98,18 +107,23 @@ This example uses the pre-fill feature to give students a head start (2 answers 
 
 The signature for the sorting quizzes is 
 
-`@dragdropsort(@uid,<answers>,<prefill>)`,
+`@dragdropsort(@uid,<answers>,<prefill?>,<maxTrials?>)`,
 
 , where
 
 * `@uid` works the same as in the order quiz,
 * `<pairs>` are the pairs (again separated by `|`), consisting of the target and at least one affiliated answer (separated by `;`), and
-* `<prefill>` (optional) is a positive integer — if provided, that many answers are pre-placed into their correct targets to give students a head start.
+* `<prefill>` (optional) is a positive integer — if provided, that many answers are pre-placed into their correct targets to give students a head start,
+* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts.
+
+Note: the pool of answers is always shuffled randomly on first load.
 
 Example: `@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object)`
 The target is always the first one in the pair-list.
 
 Example with pre-fill: `@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object,2)` pre-places the first correct answer for each of the first 2 targets.
+
+Example with pre-fill and 3 max trials: `@dragdropsort(@uid,@f18;Plane;Jet|Green;Color|Table;Object,2,3)`
 
 After a wrong check, correctly placed items are highlighted in green and incorrectly placed (or unplaced) items are highlighted in red.
 
