@@ -29,7 +29,7 @@ This example allows only 3 attempts before locking the quiz as failed:
 
 This example disables the neighbor-gluing feature (correctly ordered pairs will not travel together when dragging):
 
-@dragdroporder(@uid,this|is|the|solution,,false)
+@dragdroporder(@uid,this|is|the|solution,3,false)
 
 ### How to use
 
