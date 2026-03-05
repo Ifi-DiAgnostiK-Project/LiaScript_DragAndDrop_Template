@@ -17,30 +17,42 @@ To use these macros within your document, simply import it into LiaScript via:
 
 Try to order these items correctly by dragging and dropping them!
 
-<!-- data-randomize -->
-@dragdroporder(@uid,4|2|3|1,1|2|3|4)
+@dragdroporder(@uid,1|2|3|4)
 
 Try to order these items correctly by dragging and dropping them (hint: should be a sentence)!
 
-@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)
+@dragdroporder(@uid,this|is|the|solution)
+
+This example allows only 3 attempts before locking the quiz as failed:
+
+@dragdroporder(@uid,this|is|the|solution,3)
 
 ### How to use
 
-The signature for the order quizzes is 
+The signature for the order quizzes is
 
-`@dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)`,
+`@dragdroporder(@uid,<correct>,<maxTrials?>)`,
 
 , where
 
 * `@uid` generates an id for the quiz which is important for correct implementation,
-* `<initial>` is the initial order of elements (separated by `|`),
-* `<correct>` is the correct order of elements (separated by `|`),
-* `<randomize>` (optional) set to `true` to shuffle the items randomly on first load instead of using the fixed initial order,
+* `<correct>` is the correct order of elements (separated by `|`); the items are always shuffled randomly on first load,
 * `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts.
 
-Example: `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
+Example: `@dragdroporder(@uid,this|is|the|solution)`
 
-Example with randomize and 3 max trials: `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution,true,3)`
+Example with 3 max trials: `@dragdroporder(@uid,this|is|the|solution,3)`
+
+#### Deprecated API
+
+The previous signature `@dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)` is still supported but deprecated and will be removed in a future version. Using it will print a warning to the browser console. Please migrate to the new signature.
+
+* `<initial>` was the initial (possibly non-randomized) display order,
+* `<randomize?>` was an optional flag (`true`) to shuffle on first load.
+
+Example (deprecated): `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
+
+Example with randomize and 3 max trials (deprecated): `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution,true,3)`
 
 
 ## Multiple choice quiz

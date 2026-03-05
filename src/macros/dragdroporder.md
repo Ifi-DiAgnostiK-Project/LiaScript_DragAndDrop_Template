@@ -1,4 +1,5 @@
 <div style="width: 100%; max-width: 600px; padding: 20px; border: 1px solid rgb(var(--color-highlight)); border-radius: 8px;" id="quiz-@0">
+  <span class="deprecation-warning" style="display: none; color: rgb(var(--lia-red)); font-weight: bold; margin-bottom: 10px;"></span>
   <div class="choices-container" style="display: flex; flex-direction: column; gap: 10px;">
   </div>
 
@@ -56,13 +57,25 @@
         const choicesContainer = quizContainer.querySelector('.choices-container');
         const feedback = quizContainer.querySelector('.feedback');
         const checkingButton = quizContainer.querySelector('.lia-quiz__check');
+        const deprecationWarning = quizContainer.querySelector('.deprecation-warning');
 
         const dataKey = `quiz-${quizId}-data`;
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
 
-        const correctAnswers = '@2'.split('|');
-        const randomize = '@3' === 'true';
-        const maxTrials = parseInt('@4') || 0;
+        // Detect legacy API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)
+        // New API:    @dragdroporder(@uid,<correct>,<maxTrials?>)
+        // If @2 contains '|' it is a pipe-separated answer list → legacy API.
+        const isLegacyApi = '@2'.includes('|');
+
+        if (isLegacyApi) {
+          console.warn('[dragdroporder] Deprecated API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>) will be removed in a future version. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>).');
+          deprecationWarning.textContent = '⚠ Deprecated API: Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>).';
+          deprecationWarning.style.display = 'block';
+        }
+
+        const correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
+        const maxTrials = isLegacyApi ? parseInt('@4') || 0 : parseInt('@2') || 0;
+        const randomize = isLegacyApi ? '@3' === 'true' : true;
 
         let currentAnswer = savedData.currentAnswer;
         if (currentAnswer === null) {

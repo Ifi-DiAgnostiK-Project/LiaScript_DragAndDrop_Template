@@ -67,12 +67,24 @@ describe("build script", () => {
     expect(readmeContent).toContain("docs/development.md");
   });
 
-  test("dragdroporder macro supports randomize and maxTrials parameters", () => {
+  test("dragdroporder macro supports new API (correct-only) and legacy API with deprecation warning", () => {
     const startIdx = readmeContent.indexOf("@dragdroporder\n");
     const endIdx = readmeContent.indexOf("@end", startIdx);
     const macro = readmeContent.slice(startIdx, endIdx);
+    // New API detection
+    expect(macro).toContain("'@2'.includes('|')");
+    // In-page red deprecation warning element
+    expect(macro).toContain('class="deprecation-warning"');
+    expect(macro).toContain("deprecationWarning.style.display = 'block'");
+    // Console deprecation warning for legacy API
+    expect(macro).toContain("console.warn(");
+    expect(macro).toContain("Deprecated API");
+    // Legacy API still reads @3 for randomize and @4 for maxTrials
     expect(macro).toContain("'@3' === 'true'");
     expect(macro).toContain("parseInt('@4') || 0");
+    // New API reads @2 for maxTrials
+    expect(macro).toContain("parseInt('@2') || 0");
+    // Shared behaviour
     expect(macro).toContain("lockQuizFailed(");
     expect(macro).toContain("maxTrials > 0 && savedData.tries >= maxTrials");
   });
