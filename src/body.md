@@ -1,17 +1,17 @@
 # Drag and Drop Quizzes
 <!--
-@img: https://raw.githubusercontent.com/wenik35/LiaScript_ImageQuiz/main/img/mustang.jpg
+@img: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/LiaScript_ImageQuiz/main/img/mustang.jpg
 -->
 
 This is a fork of Michael Markerts drag and drop quiz template which also allows has a mode for images.
 
-* See the Github version of this document [here...](https://github.com/wenik35/LiaScript_DragAndDrop_Template/)
-* See the LiaScript version of this document [here...](https://liascript.github.io/course/?https://raw.githubusercontent.com/wenik35/LiaScript_DragAndDrop_Template/refs/heads/main/README.md)
+* See the Github version of this document [here...](https://github.com/Ifi-DiAgnostiK-Project/LiaScript_DragAndDrop_Template/)
+* See the LiaScript version of this document [here...](https://liascript.github.io/course/?https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/LiaScript_DragAndDrop_Template/refs/heads/main/README.md)
 * Developer guide (build, test, extend): [docs/development.md](docs/development.md)
 
 To use these macros within your document, simply import it into LiaScript via:
 
-`import: https://raw.githubusercontent.com/wenik35/LiaScript_DragAndDrop_Template/refs/heads/main/README.md`
+`import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/LiaScript_DragAndDrop_Template/refs/heads/main/README.md`
 
 ## Order quiz
 
