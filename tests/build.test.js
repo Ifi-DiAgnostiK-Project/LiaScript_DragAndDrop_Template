@@ -66,4 +66,37 @@ describe("build script", () => {
   test("README.md contains a link to the developer guide", () => {
     expect(readmeContent).toContain("docs/development.md");
   });
+
+  test("dragdroporder macro supports randomize and maxTrials parameters", () => {
+    const startIdx = readmeContent.indexOf("@dragdroporder\n");
+    const endIdx = readmeContent.indexOf("@end", startIdx);
+    const macro = readmeContent.slice(startIdx, endIdx);
+    expect(macro).toContain("'@3' === 'true'");
+    expect(macro).toContain("parseInt('@4') || 0");
+    expect(macro).toContain("lockQuizFailed(");
+    expect(macro).toContain("maxTrials > 0 && savedData.tries >= maxTrials");
+  });
+
+  test("dragdropmultiple macro supports maxTrials parameter", () => {
+    const startIdx = readmeContent.indexOf("@dragdropmultiple\n");
+    const endIdx = readmeContent.indexOf("@end", startIdx);
+    const macro = readmeContent.slice(startIdx, endIdx);
+    expect(macro).toContain("parseInt('@3') || 0");
+    expect(macro).toContain("lockQuizFailed(");
+    expect(macro).toContain("maxTrials > 0 && savedData.tries >= maxTrials");
+  });
+
+  test("dragdropsort macro supports maxTrials parameter", () => {
+    const startIdx = readmeContent.indexOf("@dragdropsort\n");
+    const endIdx = readmeContent.indexOf("@end", startIdx);
+    const macro = readmeContent.slice(startIdx, endIdx);
+    expect(macro).toContain("parseInt('@3') || 0");
+    expect(macro).toContain("lockQuizFailed(");
+    expect(macro).toContain("maxTrials > 0 && savedData.tries >= maxTrials");
+  });
+
+  test("README.md documents new parameters in body sections", () => {
+    expect(readmeContent).toContain("<randomize?>");
+    expect(readmeContent).toContain("<maxTrials?>");
+  });
 });
