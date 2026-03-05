@@ -31,8 +31,8 @@ This example disables the neighbor-gluing feature (correctly ordered pairs will 
 
 @dragdroporder(@uid,this|is|the|solution,3,false)
 
-You can also use images — if all items are valid URLs the quiz automatically switches to image mode:
 
+### now with images
 <!--
 @basepath: https://raw.githubusercontent.com/wenik35/LiaScript_ImageQuiz/main/img
 @mustang: @basepath/mustang.jpg
@@ -40,6 +40,8 @@ You can also use images — if all items are valid URLs the quiz automatically s
 @chevrolet: @basepath/chevrolet.jpg
 @ford: @basepath/ford.jpg
 -->
+
+You can also use images — if all items are valid URLs the quiz automatically switches to image mode:
 
 @dragdroporder(@uid,@mustang|@f18|@chevrolet|@ford)
 
