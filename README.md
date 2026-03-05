@@ -1,11 +1,14 @@
 <!--
 author:   Michael Markert, Niklas Werner
 email:    michael.markert@uni-jena.de, niklas.werner@student.tu-freiberg.de
-version:  0.2
+version:  0.3
 language: de
 narrator: US English Female
 tags: Wissensspeicher
 title: Drag and Drop Quizzes
+comment: This is a fork of Michael Markerts drag and drop quiz template which also allows has a mode for images. It provides **dragdropmultiple**, **dragdroporder** and **dragdropsort** quizzes.
+logo: https://upload.wikimedia.org/wikipedia/commons/4/4c/Shell_sorting_algorithm_color_bars.svg
+attribute: "Balu Ertl, CC BY-SA 4.0 <https://creativecommons.org/licenses/by-sa/4.0>, via Wikimedia Commons"
 
 script:   https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js
 import: https://raw.githubusercontent.com/Ifi-DiAgnostiK-Project/Piktogramme/refs/heads/main/makros.md
@@ -585,7 +588,7 @@ Try to order these items correctly by dragging and dropping them (hint: should b
 
 The signature for the order quizzes is 
 
-`@dragdropmultiple(@uid,<initial>,<correct>)`,
+`@dragdroporder(@uid,<initial>,<correct>)`,
 
 , where
 
