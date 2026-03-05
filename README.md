@@ -1040,7 +1040,7 @@ Example: `@dragdroporder(@uid,this|is|the|solution)`
 
 Example with 3 max trials: `@dragdroporder(@uid,this|is|the|solution,3)`
 
-Example with neighbor-gluing disabled: `@dragdroporder(@uid,this|is|the|solution,,false)`
+Example with neighbor-gluing disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
 
 Example with 3 max trials and neighbor-gluing disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
 
