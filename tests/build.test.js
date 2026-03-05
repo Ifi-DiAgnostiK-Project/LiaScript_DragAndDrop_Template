@@ -62,4 +62,8 @@ describe("build script", () => {
     expect(readmeContent).toContain("## Multiple choice quiz");
     expect(readmeContent).toContain("## Sorting Quiz");
   });
+
+  test("README.md contains a link to the developer guide", () => {
+    expect(readmeContent).toContain("docs/development.md");
+  });
 });
