@@ -65,20 +65,20 @@
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
 
         // Detect legacy API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)
-        // New API:    @dragdroporder(@uid,<correct>,<maxTrials?>,<lockNeighbors?>)
+        // New API:    @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>)
         // If @2 contains '|' it is a pipe-separated answer list → legacy API.
         const isLegacyApi = '@2'.includes('|');
 
         if (isLegacyApi) {
-          console.warn('[dragdroporder] Deprecated API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>) will be removed in a future version. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<lockNeighbors?>).');
-          deprecationWarning.textContent = '⚠ Deprecated API: Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<lockNeighbors?>).';
+          console.warn('[dragdroporder] Deprecated API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>) will be removed in a future version. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>).');
+          deprecationWarning.textContent = '⚠ Deprecated API: Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>).';
           deprecationWarning.style.display = 'block';
         }
 
         const correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
         const maxTrials = isLegacyApi ? parseInt('@4') || 0 : parseInt('@2') || 0;
         const randomize = isLegacyApi ? '@3' === 'true' : true;
-        const lockNeighbors = isLegacyApi ? true : ('@3' !== 'false'); // pass 'false' to disable
+        const glueNeighbors = isLegacyApi ? true : ('@3' !== 'false'); // pass 'false' to disable
 
         let currentAnswer = savedData.currentAnswer;
         if (currentAnswer === null) {
@@ -120,35 +120,79 @@
               if (hints[i].top)    shadows.push('0 -3px 0 0 rgb(var(--lia-success))');
               if (hints[i].bottom) shadows.push('0  3px 0 0 rgb(var(--lia-success))');
               choice.style.boxShadow = shadows.join(', ');
-
-              if (lockNeighbors) {
-                const isLocked = hints[i].top || hints[i].bottom;
-                choice.classList.toggle('locked-neighbor', isLocked);
-                choice.classList.toggle('locked-bottom', !!hints[i].bottom);
-                if (isLocked) choice.style.cursor = 'default';
-              }
             });
           }
 
+          // Tracks the glue group for the element currently being dragged.
+          let glueInfo = null;
+
           const sortable = new Sortable(choicesContainer, {
             animation: 150,
-            filter: lockNeighbors ? '.locked-neighbor' : '',
-            onMove: function(evt) {
-              if (!lockNeighbors) return true;
+            onStart: function(evt) {
+              if (!glueNeighbors) return;
               const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
-              const relatedIdx = choices.indexOf(evt.related);
-              if (relatedIdx === -1) return true;
-              if (evt.willInsertAfter) {
-                // Inserting after evt.related: blocked if evt.related has a locked-bottom connection
-                return !evt.related.classList.contains('locked-bottom');
-              } else {
-                if (relatedIdx > 0) {
-                  // Inserting before evt.related: blocked if the element above it has locked-bottom
-                  return !choices[relatedIdx - 1].classList.contains('locked-bottom');
-                }
-                // Inserting before the first element is always allowed
+              const draggedEl = evt.item;
+              const draggedIdx = choices.indexOf(draggedEl);
+              const currentOrder = choices.map(c => c.textContent.trim());
+              const hints = getOrderHints(currentOrder, correctAnswers);
+
+              // Collect elements above the dragged element that are glued to it.
+              const aboveElements = [];
+              let idx = draggedIdx - 1;
+              while (idx >= 0 && hints[idx].bottom) {
+                aboveElements.unshift(choices[idx]);
+                idx--;
               }
-              return true;
+
+              // Collect elements below the dragged element that are glued to it.
+              const belowElements = [];
+              idx = draggedIdx + 1;
+              while (idx < choices.length && hints[idx - 1].bottom) {
+                belowElements.push(choices[idx]);
+                idx++;
+              }
+
+              if (aboveElements.length > 0 || belowElements.length > 0) {
+                glueInfo = { above: aboveElements, below: belowElements };
+                // Dim glue partners to signal they will travel with the dragged element.
+                [...aboveElements, ...belowElements].forEach(el => {
+                  el.style.opacity = '0.4';
+                });
+              } else {
+                glueInfo = null;
+              }
+            },
+            onEnd: function(evt) {
+              if (!glueNeighbors) return;
+
+              if (glueInfo) {
+                const draggedEl = evt.item;
+
+                // Restore opacity of glue partners.
+                [...glueInfo.above, ...glueInfo.below].forEach(el => {
+                  el.style.opacity = '';
+                });
+
+                // Re-insert above elements just before the dragged element (maintaining order).
+                glueInfo.above.forEach(el => {
+                  choicesContainer.insertBefore(el, draggedEl);
+                });
+
+                // Re-insert below elements just after the dragged element (maintaining order).
+                let refEl = draggedEl;
+                glueInfo.below.forEach(el => {
+                  if (refEl.nextSibling) {
+                    choicesContainer.insertBefore(el, refEl.nextSibling);
+                  } else {
+                    choicesContainer.appendChild(el);
+                  }
+                  refEl = el;
+                });
+
+                glueInfo = null;
+              }
+
+              updateHints();
             },
           });
 
