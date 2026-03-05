@@ -76,14 +76,22 @@
           deprecationWarning.style.display = 'block';
         }
 
-        const correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
+        let correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
         const maxTrials = isLegacyApi ? parseInt('@4') || 0 : parseInt('@2') || 0;
         const randomize = isLegacyApi ? '@3' === 'true' : true;
         const glueNeighbors = isLegacyApi ? true : ('@3' !== 'false'); // pass 'false' to disable
 
+        const mode = correctAnswers.every(item => isValidHttpUrl(item)) ? "image" : "text";
+        if (mode === "image") {
+          correctAnswers = correctAnswers.map(url => encodeURI(url.replaceAll(" ", "")));
+        }
+
         let currentAnswer = savedData.currentAnswer;
         if (currentAnswer === null) {
           currentAnswer = '@1'.split('|');
+          if (mode === "image") {
+            currentAnswer = currentAnswer.map(url => encodeURI(url.replaceAll(" ", "")));
+          }
           if (randomize) {
             for (let i = currentAnswer.length - 1; i > 0; i--) {
               const j = Math.floor(Math.random() * (i + 1));
@@ -94,9 +102,23 @@
           }
         }
 
-        choicesContainer.innerHTML = currentAnswer.map(item => 
-          `<div class="choice lia-code lia-code--inline" style="padding: 10px; border-radius: 4px; cursor: move; user-select: none;">${item}</div>`
-        ).join('');
+        choicesContainer.innerHTML = '';
+        currentAnswer.forEach(item => {
+          let element;
+          if (mode === "image") {
+            element = document.createElement("img");
+            element.src = item;
+            element.alt = "";
+            element.classList.add("choice");
+            element.style.cssText = "cursor: move; user-select: none; max-width: 100%; max-height: 10rem; object-fit: contain; display: block;";
+          } else {
+            element = document.createElement("div");
+            element.innerHTML = item;
+            element.classList.add("choice", "lia-code", "lia-code--inline");
+            element.style.cssText = "padding: 10px; border-radius: 4px; cursor: move; user-select: none;";
+          }
+          choicesContainer.appendChild(element);
+        });
 
         if (savedData.solved) {
           lockQuiz(feedback, checkingButton, choicesContainer, quizContainer);
@@ -112,7 +134,7 @@
 
           function updateHints() {
             const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
-            const currentOrder = choices.map(choice => choice.textContent.trim());
+            const currentOrder = choices.map(choice => mode === "image" ? choice.src : choice.textContent.trim());
             const hints = getOrderHints(currentOrder, correctAnswers);
             choices.forEach((choice, i) => {
               const shadows = [];
@@ -135,7 +157,7 @@
               const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
               const draggedEl = evt.item;
               const draggedIdx = choices.indexOf(draggedEl);
-              const currentOrder = choices.map(c => c.textContent.trim());
+              const currentOrder = choices.map(c => mode === "image" ? c.src : c.textContent.trim());
               const hints = getOrderHints(currentOrder, correctAnswers);
 
               // Collect elements above the dragged element that are glued to it.
@@ -206,7 +228,7 @@
           
           checkingButton.addEventListener("click", function (e) {
             const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
-            const currentOrder = choices.map(choice => choice.textContent.trim());
+            const currentOrder = choices.map(choice => mode === "image" ? choice.src : choice.textContent.trim());
 
             savedData.currentAnswer = currentOrder;
             
