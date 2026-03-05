@@ -83,15 +83,21 @@ describe("build script", () => {
     // Legacy API still reads @3 for randomize and @4 for maxTrials
     expect(macro).toContain("'@3' === 'true'");
     expect(macro).toContain("parseInt('@4') || 0");
-    // New API reads @2 for maxTrials
+    // New API reads @2 for maxTrials and @3 for lockNeighbors
     expect(macro).toContain("parseInt('@2') || 0");
+    expect(macro).toContain("'@3' !== 'false'");
     // Shared behaviour
     expect(macro).toContain("lockQuizFailed(");
     expect(macro).toContain("maxTrials > 0 && savedData.tries >= maxTrials");
-    // Order hints wiring
+    // Order hints wiring — hints shown only after button click, not on drag
     expect(macro).toContain("function updateHints(");
-    expect(macro).toContain("onEnd: updateHints");
+    expect(macro).not.toContain("onEnd: updateHints");
     expect(macro).toContain("getOrderHints(");
+    // Neighbor-locking feature
+    expect(macro).toContain("lockNeighbors");
+    expect(macro).toContain(".locked-neighbor");
+    expect(macro).toContain("'locked-bottom'");
+    expect(macro).toContain("onMove");
   });
 
   test("dragdropmultiple macro supports maxTrials parameter", () => {
@@ -115,5 +121,6 @@ describe("build script", () => {
   test("README.md documents new parameters in body sections", () => {
     expect(readmeContent).toContain("<randomize?>");
     expect(readmeContent).toContain("<maxTrials?>");
+    expect(readmeContent).toContain("<lockNeighbors?>");
   });
 });
