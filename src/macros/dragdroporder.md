@@ -60,9 +60,18 @@
         const dataKey = `quiz-${quizId}-data`;
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
 
-        const correctAnswers = '@2'.split('|');
-        const randomize = '@3' === 'true';
-        const maxTrials = parseInt('@4') || 0;
+        // Detect legacy API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)
+        // New API:    @dragdroporder(@uid,<correct>,<maxTrials?>)
+        // If @2 contains '|' it is a pipe-separated answer list → legacy API.
+        const isLegacyApi = '@2'.includes('|');
+
+        if (isLegacyApi) {
+          console.warn('[dragdroporder] Deprecated API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>) will be removed in a future version. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>).');
+        }
+
+        const correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
+        const maxTrials = isLegacyApi ? parseInt('@4') || 0 : parseInt('@2') || 0;
+        const randomize = isLegacyApi ? '@3' === 'true' : true;
 
         let currentAnswer = savedData.currentAnswer;
         if (currentAnswer === null) {
