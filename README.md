@@ -171,19 +171,20 @@ function isSortCorrect(currentAnswers, correctAnswers) {
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
 
         // Detect legacy API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)
-        // New API:    @dragdroporder(@uid,<correct>,<maxTrials?>)
+        // New API:    @dragdroporder(@uid,<correct>,<maxTrials?>,<lockNeighbors?>)
         // If @2 contains '|' it is a pipe-separated answer list → legacy API.
         const isLegacyApi = '@2'.includes('|');
 
         if (isLegacyApi) {
-          console.warn('[dragdroporder] Deprecated API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>) will be removed in a future version. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>).');
-          deprecationWarning.textContent = '⚠ Deprecated API: Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>).';
+          console.warn('[dragdroporder] Deprecated API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>) will be removed in a future version. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<lockNeighbors?>).');
+          deprecationWarning.textContent = '⚠ Deprecated API: Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<lockNeighbors?>).';
           deprecationWarning.style.display = 'block';
         }
 
         const correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
         const maxTrials = isLegacyApi ? parseInt('@4') || 0 : parseInt('@2') || 0;
         const randomize = isLegacyApi ? '@3' === 'true' : true;
+        const lockNeighbors = isLegacyApi ? true : ('@3' !== 'false'); // pass 'false' to disable
 
         let currentAnswer = savedData.currentAnswer;
         if (currentAnswer === null) {
@@ -214,11 +215,6 @@ function isSortCorrect(currentAnswers, correctAnswers) {
             feedback.style.color = "rgb(var(--lia-red))";
           }
 
-          const sortable = new Sortable(choicesContainer, {
-            animation: 150,
-            onEnd: updateHints,
-          });
-
           function updateHints() {
             const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
             const currentOrder = choices.map(choice => choice.textContent.trim());
@@ -230,10 +226,42 @@ function isSortCorrect(currentAnswers, correctAnswers) {
               if (hints[i].top)    shadows.push('0 -3px 0 0 rgb(var(--lia-success))');
               if (hints[i].bottom) shadows.push('0  3px 0 0 rgb(var(--lia-success))');
               choice.style.boxShadow = shadows.join(', ');
+
+              if (lockNeighbors) {
+                const isLocked = hints[i].top || hints[i].bottom;
+                choice.classList.toggle('locked-neighbor', isLocked);
+                choice.classList.toggle('locked-bottom', !!hints[i].bottom);
+                if (isLocked) choice.style.cursor = 'default';
+              }
             });
           }
 
-          updateHints();
+          const sortable = new Sortable(choicesContainer, {
+            animation: 150,
+            filter: lockNeighbors ? '.locked-neighbor' : '',
+            onMove: function(evt) {
+              if (!lockNeighbors) return true;
+              const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
+              const relatedIdx = choices.indexOf(evt.related);
+              if (relatedIdx === -1) return true;
+              if (evt.willInsertAfter) {
+                // Inserting after evt.related: blocked if evt.related has a locked-bottom connection
+                return !evt.related.classList.contains('locked-bottom');
+              } else {
+                if (relatedIdx > 0) {
+                  // Inserting before evt.related: blocked if the element above it has locked-bottom
+                  return !choices[relatedIdx - 1].classList.contains('locked-bottom');
+                }
+                // Inserting before the first element is always allowed
+              }
+              return true;
+            },
+          });
+
+          // Restore hints and locked state if quiz was previously checked
+          if (savedData.tries > 0) {
+            updateHints();
+          }
           
           checkingButton.addEventListener("click", function (e) {
             const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
@@ -255,6 +283,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
             } else {
               feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
               feedback.style.color = "rgb(var(--lia-red))";
+              updateHints();
             }
 
             sessionStorage.setItem(dataKey, JSON.stringify(savedData));
@@ -946,21 +975,30 @@ This example allows only 3 attempts before locking the quiz as failed:
 
 @dragdroporder(@uid,this|is|the|solution,3)
 
+This example disables the neighbor-locking feature (correctly ordered pairs will not be locked after checking):
+
+@dragdroporder(@uid,this|is|the|solution,,false)
+
 ### How to use
 
 The signature for the order quizzes is
 
-`@dragdroporder(@uid,<correct>,<maxTrials?>)`,
+`@dragdroporder(@uid,<correct>,<maxTrials?>,<lockNeighbors?>)`,
 
 , where
 
 * `@uid` generates an id for the quiz which is important for correct implementation,
 * `<correct>` is the correct order of elements (separated by `|`); the items are always shuffled randomly on first load,
-* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts.
+* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts,
+* `<lockNeighbors>` (optional, default `true`) — when `true`, clicking "Prüfen" reveals hints for correctly-ordered adjacent pairs (green edge highlights) and locks those pairs so they can no longer be dragged. Other elements may still be moved, but cannot be dropped between a locked pair. Pass `false` to disable this feature entirely.
 
 Example: `@dragdroporder(@uid,this|is|the|solution)`
 
 Example with 3 max trials: `@dragdroporder(@uid,this|is|the|solution,3)`
+
+Example with neighbor-locking disabled: `@dragdroporder(@uid,this|is|the|solution,,false)`
+
+Example with 3 max trials and neighbor-locking disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
 
 #### Deprecated API
 
@@ -968,6 +1006,8 @@ The previous signature `@dragdroporder(@uid,<initial>,<correct>,<randomize?>,<ma
 
 * `<initial>` was the initial (possibly non-randomized) display order,
 * `<randomize?>` was an optional flag (`true`) to shuffle on first load.
+
+Note: when using the deprecated API the neighbor-locking feature is always active.
 
 Example (deprecated): `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
 

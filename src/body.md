@@ -27,21 +27,30 @@ This example allows only 3 attempts before locking the quiz as failed:
 
 @dragdroporder(@uid,this|is|the|solution,3)
 
+This example disables the neighbor-locking feature (correctly ordered pairs will not be locked after checking):
+
+@dragdroporder(@uid,this|is|the|solution,,false)
+
 ### How to use
 
 The signature for the order quizzes is
 
-`@dragdroporder(@uid,<correct>,<maxTrials?>)`,
+`@dragdroporder(@uid,<correct>,<maxTrials?>,<lockNeighbors?>)`,
 
 , where
 
 * `@uid` generates an id for the quiz which is important for correct implementation,
 * `<correct>` is the correct order of elements (separated by `|`); the items are always shuffled randomly on first load,
-* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts.
+* `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts,
+* `<lockNeighbors>` (optional, default `true`) — when `true`, clicking "Prüfen" reveals hints for correctly-ordered adjacent pairs (green edge highlights) and locks those pairs so they can no longer be dragged. Other elements may still be moved, but cannot be dropped between a locked pair. Pass `false` to disable this feature entirely.
 
 Example: `@dragdroporder(@uid,this|is|the|solution)`
 
 Example with 3 max trials: `@dragdroporder(@uid,this|is|the|solution,3)`
+
+Example with neighbor-locking disabled: `@dragdroporder(@uid,this|is|the|solution,,false)`
+
+Example with 3 max trials and neighbor-locking disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
 
 #### Deprecated API
 
@@ -49,6 +58,8 @@ The previous signature `@dragdroporder(@uid,<initial>,<correct>,<randomize?>,<ma
 
 * `<initial>` was the initial (possibly non-randomized) display order,
 * `<randomize?>` was an optional flag (`true`) to shuffle on first load.
+
+Note: when using the deprecated API the neighbor-locking feature is always active.
 
 Example (deprecated): `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
 
