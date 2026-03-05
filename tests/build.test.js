@@ -1,0 +1,65 @@
+"use strict";
+
+const { execSync } = require("child_process");
+const fs = require("fs");
+const path = require("path");
+
+const ROOT = path.resolve(__dirname, "..");
+const README_PATH = path.join(ROOT, "README.md");
+
+describe("build script", () => {
+  let readmeContent;
+
+  beforeAll(() => {
+    // Run the build script and read the output
+    execSync("node scripts/build.js", { cwd: ROOT });
+    readmeContent = fs.readFileSync(README_PATH, "utf8");
+  });
+
+  test("README.md starts with a LiaScript HTML comment block", () => {
+    expect(readmeContent.startsWith("<!--")).toBe(true);
+  });
+
+  test("README.md contains the YAML header fields", () => {
+    expect(readmeContent).toContain("author:");
+    expect(readmeContent).toContain("title: Drag and Drop Quizzes");
+    expect(readmeContent).toContain("script:");
+  });
+
+  test("README.md contains all four macro definitions", () => {
+    expect(readmeContent).toContain("@dragdroporder");
+    expect(readmeContent).toContain("@dragdropmultiple");
+    expect(readmeContent).toContain("@dragdropmultipleimages");
+    expect(readmeContent).toContain("@dragdropsort");
+  });
+
+  test("each macro definition is properly terminated with @end", () => {
+    const macros = ["dragdroporder", "dragdropmultiple", "dragdropmultipleimages", "dragdropsort"];
+    macros.forEach((name) => {
+      const startIdx = readmeContent.indexOf(`@${name}\n`);
+      expect(startIdx).toBeGreaterThan(-1);
+      const endIdx = readmeContent.indexOf("@end", startIdx);
+      expect(endIdx).toBeGreaterThan(startIdx);
+    });
+  });
+
+  test("README.md closes the header comment before the body", () => {
+    const closeComment = readmeContent.indexOf("-->");
+    const firstHeading = readmeContent.indexOf("# Drag and Drop Quizzes");
+    expect(closeComment).toBeGreaterThan(-1);
+    expect(firstHeading).toBeGreaterThan(closeComment);
+  });
+
+  test("README.md inlines the quiz logic functions into macros", () => {
+    expect(readmeContent).toContain("function isOrderCorrect(");
+    expect(readmeContent).toContain("function isMultipleChoiceCorrect(");
+    expect(readmeContent).toContain("function isSortCorrect(");
+    expect(readmeContent).toContain("function isValidHttpUrl(");
+  });
+
+  test("README.md contains the body documentation sections", () => {
+    expect(readmeContent).toContain("## Order quiz");
+    expect(readmeContent).toContain("## Multiple choice quiz");
+    expect(readmeContent).toContain("## Sorting Quiz");
+  });
+});

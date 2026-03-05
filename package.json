@@ -1,0 +1,19 @@
+{
+  "name": "liascript-dragdrop-template",
+  "version": "0.3.0",
+  "description": "LiaScript Drag and Drop quiz macros – testable development environment",
+  "scripts": {
+    "test": "jest",
+    "build": "node scripts/build.js"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ]
+  },
+  "license": "MIT"
+}
