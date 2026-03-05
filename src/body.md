@@ -27,7 +27,7 @@ This example allows only 3 attempts before locking the quiz as failed:
 
 @dragdroporder(@uid,this|is|the|solution,3)
 
-This example disables the neighbor-locking feature (correctly ordered pairs will not be locked after checking):
+This example disables the neighbor-gluing feature (correctly ordered pairs will not travel together when dragging):
 
 @dragdroporder(@uid,this|is|the|solution,,false)
 
@@ -35,22 +35,22 @@ This example disables the neighbor-locking feature (correctly ordered pairs will
 
 The signature for the order quizzes is
 
-`@dragdroporder(@uid,<correct>,<maxTrials?>,<lockNeighbors?>)`,
+`@dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>)`,
 
 , where
 
 * `@uid` generates an id for the quiz which is important for correct implementation,
 * `<correct>` is the correct order of elements (separated by `|`); the items are always shuffled randomly on first load,
 * `<maxTrials>` (optional) is a positive integer — if provided, the quiz is locked as failed after that many wrong attempts,
-* `<lockNeighbors>` (optional, default `true`) — when `true`, clicking "Prüfen" reveals hints for correctly-ordered adjacent pairs (green edge highlights) and locks those pairs so they can no longer be dragged. Other elements may still be moved, but cannot be dropped between a locked pair. Pass `false` to disable this feature entirely.
+* `<glueNeighbors>` (optional, default `true`) — when `true`, clicking "Prüfen" reveals hints for correctly-ordered adjacent pairs (green edge highlights) and glues those pairs together: dragging one element in a correctly-ordered run automatically moves the whole run with it. Pass `false` to disable this feature entirely.
 
 Example: `@dragdroporder(@uid,this|is|the|solution)`
 
 Example with 3 max trials: `@dragdroporder(@uid,this|is|the|solution,3)`
 
-Example with neighbor-locking disabled: `@dragdroporder(@uid,this|is|the|solution,,false)`
+Example with neighbor-gluing disabled: `@dragdroporder(@uid,this|is|the|solution,,false)`
 
-Example with 3 max trials and neighbor-locking disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
+Example with 3 max trials and neighbor-gluing disabled: `@dragdroporder(@uid,this|is|the|solution,3,false)`
 
 #### Deprecated API
 

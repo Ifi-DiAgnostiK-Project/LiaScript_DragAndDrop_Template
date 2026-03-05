@@ -100,6 +100,24 @@ describe("getOrderHints", () => {
     expect(hints[2]).toEqual({ top: false, bottom: false }); // d; d→c: diff=-1 ✗
     expect(hints[3]).toEqual({ top: false, bottom: false }); // c
   });
+
+  test("all-elements-neighbors case (3|4|1|2 vs 1|2|3|4): every element has at least one neighbor hint", () => {
+    // This is the scenario from the issue: all four elements are correctly-ordered
+    // neighbours of their current sibling, so the old lock feature would block
+    // every element and make the quiz impossible to solve.
+    const correct = ["1", "2", "3", "4"];
+    const user    = ["3", "4", "1", "2"];
+    const hints   = getOrderHints(user, correct);
+    // 3→4 is a correct consecutive pair
+    expect(hints[0]).toEqual({ top: false, bottom: true  }); // 3
+    expect(hints[1]).toEqual({ top: true,  bottom: false }); // 4
+    // 1→2 is a correct consecutive pair
+    expect(hints[2]).toEqual({ top: false, bottom: true  }); // 1
+    expect(hints[3]).toEqual({ top: true,  bottom: false }); // 2
+    // Every element has at least one neighbour hint – the glue feature must
+    // move neighbours together rather than locking them in place.
+    hints.forEach(h => expect(h.top || h.bottom).toBe(true));
+  });
 });
 
 // ---------------------------------------------------------------------------

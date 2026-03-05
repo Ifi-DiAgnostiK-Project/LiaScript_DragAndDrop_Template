@@ -83,7 +83,7 @@ describe("build script", () => {
     // Legacy API still reads @3 for randomize and @4 for maxTrials
     expect(macro).toContain("'@3' === 'true'");
     expect(macro).toContain("parseInt('@4') || 0");
-    // New API reads @2 for maxTrials and @3 for lockNeighbors
+    // New API reads @2 for maxTrials and @3 for glueNeighbors
     expect(macro).toContain("parseInt('@2') || 0");
     expect(macro).toContain("'@3' !== 'false'");
     // Shared behaviour
@@ -93,11 +93,16 @@ describe("build script", () => {
     expect(macro).toContain("function updateHints(");
     expect(macro).not.toContain("onEnd: updateHints");
     expect(macro).toContain("getOrderHints(");
-    // Neighbor-locking feature
-    expect(macro).toContain("lockNeighbors");
-    expect(macro).toContain(".locked-neighbor");
-    expect(macro).toContain("'locked-bottom'");
-    expect(macro).toContain("onMove");
+    // Neighbor-gluing feature: drag moves correctly-ordered neighbors together
+    expect(macro).toContain("glueNeighbors");
+    expect(macro).toContain("glueInfo");
+    expect(macro).toContain("onStart");
+    expect(macro).toContain("aboveElements");
+    expect(macro).toContain("belowElements");
+    // No locking: elements are never filtered out or blocked from dragging
+    expect(macro).not.toContain(".locked-neighbor");
+    expect(macro).not.toContain("'locked-bottom'");
+    expect(macro).not.toContain("onMove");
   });
 
   test("dragdropmultiple macro supports maxTrials parameter", () => {
@@ -121,6 +126,6 @@ describe("build script", () => {
   test("README.md documents new parameters in body sections", () => {
     expect(readmeContent).toContain("<randomize?>");
     expect(readmeContent).toContain("<maxTrials?>");
-    expect(readmeContent).toContain("<lockNeighbors?>");
+    expect(readmeContent).toContain("<glueNeighbors?>");
   });
 });
