@@ -32,6 +32,7 @@
     choicesContainer.querySelectorAll("*").forEach((element) => {
       element.style.cursor = "default";
       element.style.borderColor = "rgb(var(--lia-grey))";
+      element.style.boxShadow = "";
     });
   }
 
@@ -47,6 +48,7 @@
     choicesContainer.querySelectorAll("*").forEach((element) => {
       element.style.cursor = "default";
       element.style.borderColor = "rgb(var(--lia-grey))";
+      element.style.boxShadow = "";
     });
   }
 
@@ -108,7 +110,24 @@
 
           const sortable = new Sortable(choicesContainer, {
             animation: 150,
+            onEnd: updateHints,
           });
+
+          function updateHints() {
+            const choices = Array.from(choicesContainer.querySelectorAll('.choice'));
+            const currentOrder = choices.map(choice => choice.textContent.trim());
+            const hints = getOrderHints(currentOrder, correctAnswers);
+            choices.forEach((choice, i) => {
+              const shadows = [];
+              // 3px shadow bleeds out from the element edge by exactly 3px,
+              // painting a thin green line at the top (-3px) or bottom (+3px).
+              if (hints[i].top)    shadows.push('0 -3px 0 0 rgb(var(--lia-success))');
+              if (hints[i].bottom) shadows.push('0  3px 0 0 rgb(var(--lia-success))');
+              choice.style.boxShadow = shadows.join(', ');
+            });
+          }
+
+          updateHints();
           
           checkingButton.addEventListener("click", function (e) {
             const choices = Array.from(choicesContainer.querySelectorAll('.choice'));

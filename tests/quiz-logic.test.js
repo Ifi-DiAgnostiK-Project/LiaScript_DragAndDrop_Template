@@ -2,6 +2,7 @@
 
 const {
   isValidHttpUrl,
+  getOrderHints,
   isOrderCorrect,
   isMultipleChoiceCorrect,
   isSortCorrect,
@@ -29,6 +30,75 @@ describe("isValidHttpUrl", () => {
 
   test("returns false for an empty string", () => {
     expect(isValidHttpUrl("")).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getOrderHints
+// ---------------------------------------------------------------------------
+describe("getOrderHints", () => {
+  test("problem-statement example: fu|bar|extreme|for|persons|done vs correct fu|bar|for|extreme|persons|done", () => {
+    const correct = ["fu", "bar", "for", "extreme", "persons", "done"];
+    const user   = ["fu", "bar", "extreme", "for", "persons", "done"];
+    const hints  = getOrderHints(user, correct);
+    // fu→bar is a correct consecutive pair: fu gets bottom, bar gets top
+    expect(hints[0]).toEqual({ top: false, bottom: true  });  // fu
+    expect(hints[1]).toEqual({ top: true,  bottom: false });  // bar
+    // extreme and for are swapped – neither edge is marked
+    expect(hints[2]).toEqual({ top: false, bottom: false }); // extreme
+    expect(hints[3]).toEqual({ top: false, bottom: false }); // for
+    // persons→done is a correct consecutive pair
+    expect(hints[4]).toEqual({ top: false, bottom: true  }); // persons
+    expect(hints[5]).toEqual({ top: true,  bottom: false }); // done
+  });
+
+  test("new-requirement example: fu|bar|persons|done|extreme|for – only edges between fu-bar and persons-done are marked", () => {
+    const correct = ["fu", "bar", "for", "extreme", "persons", "done"];
+    const user   = ["fu", "bar", "persons", "done", "extreme", "for"];
+    const hints  = getOrderHints(user, correct);
+    // fu(0)→bar(1): diff=1 ✓
+    expect(hints[0]).toEqual({ top: false, bottom: true  }); // fu
+    expect(hints[1]).toEqual({ top: true,  bottom: false }); // bar  (bar→persons: diff=3 ✗)
+    // persons(4)→done(5): diff=1 ✓  but bar(1)→persons(4): diff=3 ✗
+    expect(hints[2]).toEqual({ top: false, bottom: true  }); // persons
+    expect(hints[3]).toEqual({ top: true,  bottom: false }); // done  (done→extreme: diff=-2 ✗)
+    expect(hints[4]).toEqual({ top: false, bottom: false }); // extreme
+    expect(hints[5]).toEqual({ top: false, bottom: false }); // for
+  });
+
+  test("perfectly correct order: all inner edges marked, first only bottom, last only top", () => {
+    const order = ["a", "b", "c"];
+    const hints = getOrderHints(order, order);
+    expect(hints[0]).toEqual({ top: false, bottom: true  }); // a
+    expect(hints[1]).toEqual({ top: true,  bottom: true  }); // b (connected on both sides)
+    expect(hints[2]).toEqual({ top: true,  bottom: false }); // c
+  });
+
+  test("completely reversed order: no edges marked", () => {
+    const correct = ["a", "b", "c"];
+    const user   = ["c", "b", "a"];
+    const hints  = getOrderHints(user, correct);
+    hints.forEach(h => expect(h).toEqual({ top: false, bottom: false }));
+  });
+
+  test("single element: no edges (no neighbours)", () => {
+    const hints = getOrderHints(["x"], ["x"]);
+    expect(hints[0]).toEqual({ top: false, bottom: false });
+  });
+
+  test("empty array: returns empty array", () => {
+    expect(getOrderHints([], [])).toEqual([]);
+  });
+
+  test("non-adjacent correct pair is not highlighted", () => {
+    // a(0) b(1) d(3) c(2) – a→b correct, b→d skips one so NOT adjacent
+    const correct = ["a", "b", "c", "d"];
+    const user   = ["a", "b", "d", "c"];
+    const hints  = getOrderHints(user, correct);
+    expect(hints[0]).toEqual({ top: false, bottom: true  }); // a→b ✓
+    expect(hints[1]).toEqual({ top: true,  bottom: false }); // b; b→d: diff=2 ✗
+    expect(hints[2]).toEqual({ top: false, bottom: false }); // d; d→c: diff=-1 ✗
+    expect(hints[3]).toEqual({ top: false, bottom: false }); // c
   });
 });
 
