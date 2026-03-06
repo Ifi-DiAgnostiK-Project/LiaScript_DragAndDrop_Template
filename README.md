@@ -72,6 +72,31 @@ function getOrderHints(currentOrder, correctAnswers) {
 }
 
 /**
+ * Shuffles an array in-place using Fisher-Yates and retries until the result
+ * differs from the reference array, or until maxAttempts is exhausted.
+ * For single-element arrays, or when all elements are identical, the result
+ * may still equal the reference (impossible to avoid).
+ * @param {Array} arr - The array to shuffle (modified in-place).
+ * @param {Array} reference - The reference array to avoid matching.
+ * @param {number} [maxAttempts=10] - Maximum shuffle attempts.
+ * @returns {Array} The shuffled array (same reference as arr).
+ */
+function shuffleNotEqualTo(arr, reference, maxAttempts = 10) {
+  if (arr.length <= 1) return arr;
+  let attempts = 0;
+  do {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = temp;
+    }
+    attempts++;
+  } while (attempts < maxAttempts && arr.every((v, i) => v === reference[i]));
+  return arr;
+}
+
+/**
  * Checks whether the given order exactly matches the correct order.
  * @param {string[]} currentOrder - Current order of items.
  * @param {string[]} correctAnswers - Expected order of items.
@@ -199,12 +224,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
             currentAnswer = currentAnswer.map(url => encodeURI(url.replaceAll(" ", "")));
           }
           if (randomize) {
-            for (let i = currentAnswer.length - 1; i > 0; i--) {
-              const j = Math.floor(Math.random() * (i + 1));
-              const temp = currentAnswer[i];
-              currentAnswer[i] = currentAnswer[j];
-              currentAnswer[j] = temp;
-            }
+            shuffleNotEqualTo(currentAnswer, correctAnswers);
           }
         }
 
@@ -428,6 +448,31 @@ function getOrderHints(currentOrder, correctAnswers) {
     top:    i > 0     && correctIdx[i - 1] >= 0 && correctIdx[i] >= 0     && correctIdx[i]     - correctIdx[i - 1] === 1,
     bottom: i < n - 1 && correctIdx[i] >= 0     && correctIdx[i + 1] >= 0 && correctIdx[i + 1] - correctIdx[i]     === 1,
   }));
+}
+
+/**
+ * Shuffles an array in-place using Fisher-Yates and retries until the result
+ * differs from the reference array, or until maxAttempts is exhausted.
+ * For single-element arrays, or when all elements are identical, the result
+ * may still equal the reference (impossible to avoid).
+ * @param {Array} arr - The array to shuffle (modified in-place).
+ * @param {Array} reference - The reference array to avoid matching.
+ * @param {number} [maxAttempts=10] - Maximum shuffle attempts.
+ * @returns {Array} The shuffled array (same reference as arr).
+ */
+function shuffleNotEqualTo(arr, reference, maxAttempts = 10) {
+  if (arr.length <= 1) return arr;
+  let attempts = 0;
+  do {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = temp;
+    }
+    attempts++;
+  } while (attempts < maxAttempts && arr.every((v, i) => v === reference[i]));
+  return arr;
 }
 
 /**
@@ -690,6 +735,31 @@ function getOrderHints(currentOrder, correctAnswers) {
     top:    i > 0     && correctIdx[i - 1] >= 0 && correctIdx[i] >= 0     && correctIdx[i]     - correctIdx[i - 1] === 1,
     bottom: i < n - 1 && correctIdx[i] >= 0     && correctIdx[i + 1] >= 0 && correctIdx[i + 1] - correctIdx[i]     === 1,
   }));
+}
+
+/**
+ * Shuffles an array in-place using Fisher-Yates and retries until the result
+ * differs from the reference array, or until maxAttempts is exhausted.
+ * For single-element arrays, or when all elements are identical, the result
+ * may still equal the reference (impossible to avoid).
+ * @param {Array} arr - The array to shuffle (modified in-place).
+ * @param {Array} reference - The reference array to avoid matching.
+ * @param {number} [maxAttempts=10] - Maximum shuffle attempts.
+ * @returns {Array} The shuffled array (same reference as arr).
+ */
+function shuffleNotEqualTo(arr, reference, maxAttempts = 10) {
+  if (arr.length <= 1) return arr;
+  let attempts = 0;
+  do {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = arr[i];
+      arr[i] = arr[j];
+      arr[j] = temp;
+    }
+    attempts++;
+  } while (attempts < maxAttempts && arr.every((v, i) => v === reference[i]));
+  return arr;
 }
 
 /**

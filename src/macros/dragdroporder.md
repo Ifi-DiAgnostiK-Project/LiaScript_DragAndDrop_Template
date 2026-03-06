@@ -93,12 +93,7 @@
             currentAnswer = currentAnswer.map(url => encodeURI(url.replaceAll(" ", "")));
           }
           if (randomize) {
-            for (let i = currentAnswer.length - 1; i > 0; i--) {
-              const j = Math.floor(Math.random() * (i + 1));
-              const temp = currentAnswer[i];
-              currentAnswer[i] = currentAnswer[j];
-              currentAnswer[j] = temp;
-            }
+            shuffleNotEqualTo(currentAnswer, correctAnswers);
           }
         }
 
