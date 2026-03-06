@@ -208,24 +208,27 @@ function isSortCorrect(currentAnswers, correctAnswers) {
         const checkingButton = quizContainer.querySelector('.lia-quiz__check');
         const deprecationWarning = quizContainer.querySelector('.deprecation-warning');
 
-        const dataKey = `quiz-${quizId}-data`;
-        const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
-
         // Detect legacy API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)
         // New API:    @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>)
         // If @2 contains '|' it is a pipe-separated answer list → legacy API.
         const isLegacyApi = '@2'.includes('|');
 
         if (isLegacyApi) {
-          console.warn('[dragdroporder] Deprecated API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>) will be removed in a future version. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>).');
-          deprecationWarning.textContent = '⚠ Deprecated API: Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>).';
+          console.warn('[dragdroporder] This API call is no longer supported. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>).');
+          deprecationWarning.textContent = '⚠ This API call is no longer supported. Please use @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>) instead.';
           deprecationWarning.style.display = 'block';
+          choicesContainer.style.display = 'none';
+          checkingButton.parentElement.style.display = 'none';
+          return;
         }
 
-        let correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
-        const maxTrials = isLegacyApi ? parseInt('@4') || 0 : parseInt('@2') || 0;
-        const randomize = isLegacyApi ? '@3' === 'true' : true;
-        const glueNeighbors = isLegacyApi ? true : ('@3' !== 'false'); // pass 'false' to disable
+        const dataKey = `quiz-${quizId}-data`;
+        const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
+
+        let correctAnswers = '@1'.split('|');
+        const maxTrials = parseInt('@2') || 0;
+        const randomize = true;
+        const glueNeighbors = '@3' !== 'false'; // pass 'false' to disable
 
         const mode = correctAnswers.every(item => isValidHttpUrl(item)) ? "image" : "text";
         if (mode === "image") {
@@ -1218,19 +1221,6 @@ Example with 3 max trials and neighbor-gluing disabled: `@dragdroporder(@uid,thi
 If you want to use images, provide the full public URLs of the images as items. If every item is a valid URL, the quiz automatically switches to image mode. You may use LiaScript macros to shorten long URLs (see example above).
 
 Example with images: `@dragdroporder(@uid,https://example.com/img1.jpg|https://example.com/img2.jpg|https://example.com/img3.jpg)`
-
-#### Deprecated API
-
-The previous signature `@dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)` is still supported but deprecated and will be removed in a future version. Using it will print a warning to the browser console. Please migrate to the new signature.
-
-* `<initial>` was the initial (possibly non-randomized) display order,
-* `<randomize?>` was an optional flag (`true`) to shuffle on first load.
-
-Note: when using the deprecated API the neighbor-locking feature is always active.
-
-Example (deprecated): `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
-
-Example with randomize and 3 max trials (deprecated): `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution,true,3)`
 
 
 ## Multiple choice quiz
