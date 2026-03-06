@@ -110,6 +110,21 @@ function isOrderCorrect(currentOrder, correctAnswers) {
 }
 
 /**
+ * Returns hint counts for the multiple-choice quiz.
+ * - correct: how many items in currentAnswers are in correctAnswers.
+ * - wrong:   how many items in currentAnswers are NOT in correctAnswers.
+ * - total:   how many correct answers are expected in total.
+ * @param {string[]} currentAnswers - Currently selected answers (items in the target zone).
+ * @param {string[]} correctAnswers - Expected correct answers.
+ * @returns {{correct: number, wrong: number, total: number}}
+ */
+function getMultipleChoiceHints(currentAnswers, correctAnswers) {
+  const correct = currentAnswers.filter(a => correctAnswers.includes(a)).length;
+  const wrong   = currentAnswers.filter(a => !correctAnswers.includes(a)).length;
+  return { correct, wrong, total: correctAnswers.length };
+}
+
+/**
  * Checks whether the selected answers contain exactly the correct answers
  * (order-independent).
  * @param {string[]} currentAnswers - Currently selected answers.
@@ -402,6 +417,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
   
   <div style="margin: 10px">
     <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
+    <span class="hint-counter" style="margin-left: 10px;"></span>
     <br>
     <span class="feedback"></span>
   </div>
@@ -489,6 +505,21 @@ function isOrderCorrect(currentOrder, correctAnswers) {
 }
 
 /**
+ * Returns hint counts for the multiple-choice quiz.
+ * - correct: how many items in currentAnswers are in correctAnswers.
+ * - wrong:   how many items in currentAnswers are NOT in correctAnswers.
+ * - total:   how many correct answers are expected in total.
+ * @param {string[]} currentAnswers - Currently selected answers (items in the target zone).
+ * @param {string[]} correctAnswers - Expected correct answers.
+ * @returns {{correct: number, wrong: number, total: number}}
+ */
+function getMultipleChoiceHints(currentAnswers, correctAnswers) {
+  const correct = currentAnswers.filter(a => correctAnswers.includes(a)).length;
+  const wrong   = currentAnswers.filter(a => !correctAnswers.includes(a)).length;
+  return { correct, wrong, total: correctAnswers.length };
+}
+
+/**
  * Checks whether the selected answers contain exactly the correct answers
  * (order-independent).
  * @param {string[]} currentAnswers - Currently selected answers.
@@ -568,6 +599,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
         const targetContainer = quizContainer.querySelector('.target-container');
         const feedback = quizContainer.querySelector('.feedback');
         const checkingButton = quizContainer.querySelector('.lia-quiz__check');
+        const hintCounter = quizContainer.querySelector('.hint-counter');
 
         const dataKey = `quiz-${quizId}-data`;
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
@@ -603,14 +635,28 @@ function isSortCorrect(currentAnswers, correctAnswers) {
         poolContainer.innerHTML = currentPool.map(item => formatString.replace("placeholder", item)).join('');
         targetContainer.innerHTML = savedData.currentAnswer.map(item => formatString.replace("placeholder", item)).join('');
 
+        function updateHintCounter(currentAnswers) {
+          const hints = getMultipleChoiceHints(currentAnswers, correctAnswers);
+          const correctLabel = hints.correct + '/' + hints.total + ' richtige';
+          let html = '<span style="color: rgb(var(--lia-success))">' + correctLabel + '</span>';
+          if (hints.wrong > 0) {
+            const wrongLabel = hints.wrong + (hints.wrong === 1 ? ' falscher' : ' falsche');
+            html += '&ensp;<span style="color: rgb(var(--lia-red))">' + wrongLabel + '</span>';
+          }
+          hintCounter.innerHTML = html;
+        }
+
         if (savedData.solved) {
+          updateHintCounter(savedData.currentAnswer);
           lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
         } else if (savedData.failed) {
           checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          updateHintCounter(savedData.currentAnswer);
           lockQuizFailed(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
         } else {
           if (savedData.tries > 0) {
             checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+            updateHintCounter(savedData.currentAnswer);
             feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
             feedback.style.color = "rgb(var(--lia-red))";
           }
@@ -643,6 +689,7 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
             savedData.tries++;
             checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+            updateHintCounter(currentAnswers);
 
             if (isCorrect) {
               savedData.solved = true;
@@ -773,6 +820,21 @@ function isOrderCorrect(currentOrder, correctAnswers) {
     currentOrder.length === correctAnswers.length &&
     currentOrder.every((answer, index) => answer === correctAnswers[index])
   );
+}
+
+/**
+ * Returns hint counts for the multiple-choice quiz.
+ * - correct: how many items in currentAnswers are in correctAnswers.
+ * - wrong:   how many items in currentAnswers are NOT in correctAnswers.
+ * - total:   how many correct answers are expected in total.
+ * @param {string[]} currentAnswers - Currently selected answers (items in the target zone).
+ * @param {string[]} correctAnswers - Expected correct answers.
+ * @returns {{correct: number, wrong: number, total: number}}
+ */
+function getMultipleChoiceHints(currentAnswers, correctAnswers) {
+  const correct = currentAnswers.filter(a => correctAnswers.includes(a)).length;
+  const wrong   = currentAnswers.filter(a => !correctAnswers.includes(a)).length;
+  return { correct, wrong, total: correctAnswers.length };
 }
 
 /**

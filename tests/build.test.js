@@ -53,6 +53,7 @@ describe("build script", () => {
   test("README.md inlines the quiz logic functions into macros", () => {
     expect(readmeContent).toContain("function getOrderHints(");
     expect(readmeContent).toContain("function isOrderCorrect(");
+    expect(readmeContent).toContain("function getMultipleChoiceHints(");
     expect(readmeContent).toContain("function isMultipleChoiceCorrect(");
     expect(readmeContent).toContain("function isSortCorrect(");
     expect(readmeContent).toContain("function isValidHttpUrl(");
@@ -131,6 +132,23 @@ describe("build script", () => {
     expect(macro).toContain("parseInt('@3') || 0");
     expect(macro).toContain("lockQuizFailed(");
     expect(macro).toContain("maxTrials > 0 && savedData.tries >= maxTrials");
+  });
+
+  test("dragdropmultiple macro shows hint counter beside Prüfen button", () => {
+    const startIdx = readmeContent.indexOf("@dragdropmultiple\n");
+    const endIdx = readmeContent.indexOf("@end", startIdx);
+    const macro = readmeContent.slice(startIdx, endIdx);
+    // Counter element present in HTML
+    expect(macro).toContain('class="hint-counter"');
+    // Logic function is present
+    expect(macro).toContain("function getMultipleChoiceHints(");
+    // updateHintCounter helper is wired up
+    expect(macro).toContain("function updateHintCounter(");
+    expect(macro).toContain("updateHintCounter(");
+    // German wording for correct items
+    expect(macro).toContain("richtige");
+    // German wording for wrong items
+    expect(macro).toContain("falscher");
   });
 
   test("dragdropsort macro supports maxTrials parameter", () => {

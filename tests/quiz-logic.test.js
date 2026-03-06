@@ -5,6 +5,7 @@ const {
   shuffleNotEqualTo,
   getOrderHints,
   isOrderCorrect,
+  getMultipleChoiceHints,
   isMultipleChoiceCorrect,
   isSortCorrect,
 } = require("../src/js/quiz-logic");
@@ -202,6 +203,40 @@ describe("isOrderCorrect", () => {
 
   test("returns true for an empty array pair", () => {
     expect(isOrderCorrect([], [])).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getMultipleChoiceHints
+// ---------------------------------------------------------------------------
+describe("getMultipleChoiceHints", () => {
+  test("returns correct=0, wrong=0, total=N when nothing is selected", () => {
+    expect(getMultipleChoiceHints([], ["a", "b", "c"])).toEqual({ correct: 0, wrong: 0, total: 3 });
+  });
+
+  test("returns correct=N, wrong=0, total=N when all correct answers are selected", () => {
+    expect(getMultipleChoiceHints(["a", "b", "c"], ["a", "b", "c"])).toEqual({ correct: 3, wrong: 0, total: 3 });
+  });
+
+  test("counts correctly-placed items vs wrongly-placed items", () => {
+    // "a" and "b" are correct, "x" is wrong
+    expect(getMultipleChoiceHints(["a", "x", "b"], ["a", "b", "c"])).toEqual({ correct: 2, wrong: 1, total: 3 });
+  });
+
+  test("all wrong: correct=0, wrong=N", () => {
+    expect(getMultipleChoiceHints(["x", "y"], ["a", "b", "c"])).toEqual({ correct: 0, wrong: 2, total: 3 });
+  });
+
+  test("partial correct: one correct, none wrong", () => {
+    expect(getMultipleChoiceHints(["b"], ["a", "b", "c"])).toEqual({ correct: 1, wrong: 0, total: 3 });
+  });
+
+  test("returns total=0 when no correct answers are expected", () => {
+    expect(getMultipleChoiceHints([], [])).toEqual({ correct: 0, wrong: 0, total: 0 });
+  });
+
+  test("wrong item appears multiple times in currentAnswers — each occurrence is counted separately", () => {
+    expect(getMultipleChoiceHints(["x", "x", "a"], ["a", "b"])).toEqual({ correct: 1, wrong: 2, total: 2 });
   });
 });
 
