@@ -2,6 +2,7 @@
 
 const {
   isValidHttpUrl,
+  shuffleNotEqualTo,
   getOrderHints,
   isOrderCorrect,
   isMultipleChoiceCorrect,
@@ -30,6 +31,61 @@ describe("isValidHttpUrl", () => {
 
   test("returns false for an empty string", () => {
     expect(isValidHttpUrl("")).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// shuffleNotEqualTo
+// ---------------------------------------------------------------------------
+describe("shuffleNotEqualTo", () => {
+  test("returns the same array reference (in-place)", () => {
+    const arr = ["a", "b", "c"];
+    const result = shuffleNotEqualTo([...arr], arr);
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  test("single-element array is returned as-is", () => {
+    const arr = ["x"];
+    expect(shuffleNotEqualTo(arr, ["x"])).toEqual(["x"]);
+  });
+
+  test("empty array is returned as-is", () => {
+    expect(shuffleNotEqualTo([], [])).toEqual([]);
+  });
+
+  test("two-element array never equals reference after shuffle", () => {
+    const ref = ["a", "b"];
+    // Run many times to confirm no trial returns the reference order
+    for (let i = 0; i < 50; i++) {
+      const arr = [...ref];
+      shuffleNotEqualTo(arr, ref);
+      expect(arr).not.toEqual(ref);
+    }
+  });
+
+  test("result never equals reference for distinctly-ordered lists", () => {
+    const ref = ["1", "2", "3", "4"];
+    for (let i = 0; i < 50; i++) {
+      const arr = [...ref];
+      shuffleNotEqualTo(arr, ref);
+      expect(arr).not.toEqual(ref);
+    }
+  });
+
+  test("all elements are preserved after shuffling (same multiset)", () => {
+    const ref = ["a", "b", "c", "d"];
+    const arr = [...ref];
+    shuffleNotEqualTo(arr, ref);
+    expect(arr.slice().sort()).toEqual(ref.slice().sort());
+  });
+
+  test("identical elements — result equals reference (unavoidable)", () => {
+    // All items are the same so every permutation is identical; function
+    // exhausts maxAttempts and returns the only possible arrangement.
+    const ref = ["x", "x", "x"];
+    const arr = [...ref];
+    shuffleNotEqualTo(arr, ref);
+    expect(arr).toEqual(ref);
   });
 });
 
