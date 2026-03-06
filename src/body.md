@@ -70,19 +70,6 @@ If you want to use images, provide the full public URLs of the images as items. 
 
 Example with images: `@dragdroporder(@uid,https://example.com/img1.jpg|https://example.com/img2.jpg|https://example.com/img3.jpg)`
 
-#### Deprecated API
-
-The previous signature `@dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)` is still supported but deprecated and will be removed in a future version. Using it will print a warning to the browser console. Please migrate to the new signature.
-
-* `<initial>` was the initial (possibly non-randomized) display order,
-* `<randomize?>` was an optional flag (`true`) to shuffle on first load.
-
-Note: when using the deprecated API the neighbor-locking feature is always active.
-
-Example (deprecated): `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution)`
-
-Example with randomize and 3 max trials (deprecated): `@dragdroporder(@uid,solution|is|this|the,this|is|the|solution,true,3)`
-
 
 ## Multiple choice quiz
 <!--

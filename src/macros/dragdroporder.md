@@ -62,24 +62,27 @@
         const checkingButton = quizContainer.querySelector('.lia-quiz__check');
         const deprecationWarning = quizContainer.querySelector('.deprecation-warning');
 
-        const dataKey = `quiz-${quizId}-data`;
-        const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
-
         // Detect legacy API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>)
         // New API:    @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>)
         // If @2 contains '|' it is a pipe-separated answer list → legacy API.
         const isLegacyApi = '@2'.includes('|');
 
         if (isLegacyApi) {
-          console.warn('[dragdroporder] Deprecated API: @dragdroporder(@uid,<initial>,<correct>,<randomize?>,<maxTrials?>) will be removed in a future version. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>).');
-          deprecationWarning.textContent = '⚠ Deprecated API: Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>).';
+          console.warn('[dragdroporder] This API call is no longer supported. Please migrate to @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>).');
+          deprecationWarning.textContent = '⚠ This API call is no longer supported. Please use @dragdroporder(@uid,<correct>,<maxTrials?>,<glueNeighbors?>) instead.';
           deprecationWarning.style.display = 'block';
+          choicesContainer.style.display = 'none';
+          checkingButton.parentElement.style.display = 'none';
+          return;
         }
 
-        let correctAnswers = isLegacyApi ? '@2'.split('|') : '@1'.split('|');
-        const maxTrials = isLegacyApi ? parseInt('@4') || 0 : parseInt('@2') || 0;
-        const randomize = isLegacyApi ? '@3' === 'true' : true;
-        const glueNeighbors = isLegacyApi ? true : ('@3' !== 'false'); // pass 'false' to disable
+        const dataKey = `quiz-${quizId}-data`;
+        const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
+
+        let correctAnswers = '@1'.split('|');
+        const maxTrials = parseInt('@2') || 0;
+        const randomize = true;
+        const glueNeighbors = '@3' !== 'false'; // pass 'false' to disable
 
         const mode = correctAnswers.every(item => isValidHttpUrl(item)) ? "image" : "text";
         if (mode === "image") {

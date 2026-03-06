@@ -69,21 +69,24 @@ describe("build script", () => {
     expect(readmeContent).toContain("docs/development.md");
   });
 
-  test("dragdroporder macro supports new API (correct-only) and legacy API with deprecation warning", () => {
+  test("dragdroporder macro detects legacy API and shows unsupported message without rendering a quiz", () => {
     const startIdx = readmeContent.indexOf("@dragdroporder\n");
     const endIdx = readmeContent.indexOf("@end", startIdx);
     const macro = readmeContent.slice(startIdx, endIdx);
-    // New API detection
+    // Legacy API detection still present
     expect(macro).toContain("'@2'.includes('|')");
     // In-page red deprecation warning element
     expect(macro).toContain('class="deprecation-warning"');
     expect(macro).toContain("deprecationWarning.style.display = 'block'");
-    // Console deprecation warning for legacy API
+    // Message says "no longer supported"
+    expect(macro).toContain("no longer supported");
+    // Console warning for legacy API
     expect(macro).toContain("console.warn(");
-    expect(macro).toContain("Deprecated API");
-    // Legacy API still reads @3 for randomize and @4 for maxTrials
-    expect(macro).toContain("'@3' === 'true'");
-    expect(macro).toContain("parseInt('@4') || 0");
+    // Legacy API path returns early — no quiz rendered
+    expect(macro).toContain("return;");
+    // Legacy API-specific quiz branching is gone
+    expect(macro).not.toContain("'@3' === 'true'");
+    expect(macro).not.toContain("parseInt('@4') || 0");
     // New API reads @2 for maxTrials and @3 for glueNeighbors
     expect(macro).toContain("parseInt('@2') || 0");
     expect(macro).toContain("'@3' !== 'false'");
@@ -161,7 +164,6 @@ describe("build script", () => {
   });
 
   test("README.md documents new parameters in body sections", () => {
-    expect(readmeContent).toContain("<randomize?>");
     expect(readmeContent).toContain("<maxTrials?>");
     expect(readmeContent).toContain("<glueNeighbors?>");
   });
