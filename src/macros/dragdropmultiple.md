@@ -15,6 +15,7 @@
   
   <div style="margin: 10px">
     <button class="lia-btn  lia-btn--outline lia-quiz__check">Prüfen</button>
+    <span class="hint-counter" style="margin-left: 10px;"></span>
     <br>
     <span class="feedback"></span>
   </div>
@@ -68,6 +69,7 @@
         const targetContainer = quizContainer.querySelector('.target-container');
         const feedback = quizContainer.querySelector('.feedback');
         const checkingButton = quizContainer.querySelector('.lia-quiz__check');
+        const hintCounter = quizContainer.querySelector('.hint-counter');
 
         const dataKey = `quiz-${quizId}-data`;
         const savedData = JSON.parse(sessionStorage.getItem(dataKey)) ?? quizData;
@@ -103,14 +105,28 @@
         poolContainer.innerHTML = currentPool.map(item => formatString.replace("placeholder", item)).join('');
         targetContainer.innerHTML = savedData.currentAnswer.map(item => formatString.replace("placeholder", item)).join('');
 
+        function updateHintCounter(currentAnswers) {
+          const hints = getMultipleChoiceHints(currentAnswers, correctAnswers);
+          const correctLabel = hints.correct + '/' + hints.total + ' Richtige';
+          let html = '<span style="color: rgb(var(--lia-success))">' + correctLabel + '</span>';
+          if (hints.wrong > 0) {
+            const wrongLabel = hints.wrong + (hints.wrong === 1 ? ' Falscher' : ' Falsche');
+            html += ', <span style="color: rgb(var(--lia-red))">' + wrongLabel + '</span>';
+          }
+          hintCounter.innerHTML = html;
+        }
+
         if (savedData.solved) {
+          updateHintCounter(savedData.currentAnswer);
           lockQuiz(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
         } else if (savedData.failed) {
           checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+          updateHintCounter(savedData.currentAnswer);
           lockQuizFailed(feedback, checkingButton, poolContainer, targetContainer, quizContainer);
         } else {
           if (savedData.tries > 0) {
             checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+            updateHintCounter(savedData.currentAnswer);
             feedback.textContent = "Die richtige Antwort wurde noch nicht gegeben";
             feedback.style.color = "rgb(var(--lia-red))";
           }
@@ -143,6 +159,7 @@
 
             savedData.tries++;
             checkingButton.textContent = "Prüfen " + savedData.tries.toString();
+            updateHintCounter(currentAnswers);
 
             if (isCorrect) {
               savedData.solved = true;

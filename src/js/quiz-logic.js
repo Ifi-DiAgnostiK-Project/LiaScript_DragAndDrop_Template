@@ -79,6 +79,21 @@ function isOrderCorrect(currentOrder, correctAnswers) {
 }
 
 /**
+ * Returns hint counts for the multiple-choice quiz.
+ * - correct: how many items in currentAnswers are in correctAnswers.
+ * - wrong:   how many items in currentAnswers are NOT in correctAnswers.
+ * - total:   how many correct answers are expected in total.
+ * @param {string[]} currentAnswers - Currently selected answers (items in the target zone).
+ * @param {string[]} correctAnswers - Expected correct answers.
+ * @returns {{correct: number, wrong: number, total: number}}
+ */
+function getMultipleChoiceHints(currentAnswers, correctAnswers) {
+  const correct = currentAnswers.filter(a => correctAnswers.includes(a)).length;
+  const wrong   = currentAnswers.filter(a => !correctAnswers.includes(a)).length;
+  return { correct, wrong, total: correctAnswers.length };
+}
+
+/**
  * Checks whether the selected answers contain exactly the correct answers
  * (order-independent).
  * @param {string[]} currentAnswers - Currently selected answers.
@@ -119,6 +134,7 @@ if (typeof module !== "undefined") {
     shuffleNotEqualTo,
     getOrderHints,
     isOrderCorrect,
+    getMultipleChoiceHints,
     isMultipleChoiceCorrect,
     isSortCorrect,
   };
