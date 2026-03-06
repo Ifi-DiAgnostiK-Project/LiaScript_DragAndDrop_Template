@@ -637,11 +637,11 @@ function isSortCorrect(currentAnswers, correctAnswers) {
 
         function updateHintCounter(currentAnswers) {
           const hints = getMultipleChoiceHints(currentAnswers, correctAnswers);
-          const correctLabel = hints.correct + '/' + hints.total + ' richtige';
+          const correctLabel = hints.correct + '/' + hints.total + ' Richtige';
           let html = '<span style="color: rgb(var(--lia-success))">' + correctLabel + '</span>';
           if (hints.wrong > 0) {
-            const wrongLabel = hints.wrong + (hints.wrong === 1 ? ' falscher' : ' falsche');
-            html += '&ensp;<span style="color: rgb(var(--lia-red))">' + wrongLabel + '</span>';
+            const wrongLabel = hints.wrong + (hints.wrong === 1 ? ' Falscher' : ' Falsche');
+            html += ', <span style="color: rgb(var(--lia-red))">' + wrongLabel + '</span>';
           }
           hintCounter.innerHTML = html;
         }

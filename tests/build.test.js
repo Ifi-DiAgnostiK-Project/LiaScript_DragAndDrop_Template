@@ -146,9 +146,9 @@ describe("build script", () => {
     expect(macro).toContain("function updateHintCounter(");
     expect(macro).toContain("updateHintCounter(");
     // German wording for correct items
-    expect(macro).toContain("richtige");
+    expect(macro).toContain("Richtige");
     // German wording for wrong items
-    expect(macro).toContain("falscher");
+    expect(macro).toContain("Falscher");
   });
 
   test("dragdropsort macro supports maxTrials parameter", () => {
